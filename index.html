@@ -1,0 +1,2648 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>무료 강연·공연 경쟁사 일정 리포트</title>
+  <style>
+    :root {
+      --ink: #0f172a;
+      --muted: #64748b;
+      --line: #dbe4ef;
+      --surface: #f6f9fd;
+      --panel: #ffffff;
+      --panel-soft: #eef6ff;
+      --accent: #2563eb;
+      --accent-strong: #1d4ed8;
+      --danger: #dc2626;
+      --success-bg: #dcfce7;
+      --success: #047857;
+      --warn-bg: #fff7ed;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.08), transparent 34rem),
+        var(--surface);
+      font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+      font-variant-numeric: tabular-nums;
+    }
+    .wrap { max-width: 1720px; margin: 0 auto; padding: 26px 32px 56px; }
+    header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 28px;
+      align-items: start;
+      margin-bottom: 24px;
+    }
+    h1 { margin: 0 0 10px; font-size: 34px; line-height: 1.15; letter-spacing: 0; font-weight: 800; }
+    .lead { margin: 0; color: var(--muted); max-width: 900px; font-size: 16px; }
+    .stamp { text-align: right; color: var(--muted); white-space: nowrap; font-size: 13px; }
+    .stamp strong { color: var(--ink); font-size: 17px; }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin: 18px 0 18px;
+    }
+    .card {
+      padding: 18px 20px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+    }
+    .card b { display: block; font-size: 32px; line-height: 1; font-weight: 800; }
+    .card span { display: block; margin-top: 6px; color: var(--muted); }
+    .notice {
+      background: var(--panel);
+      border: 1px solid #fed7aa;
+      border-left: 5px solid #f59e0b;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin: 16px 0;
+    }
+    .notice.warn { color: #92400e; }
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) 190px 190px 170px 150px;
+      gap: 12px;
+      align-items: center;
+      padding: 14px;
+      margin: 18px 0;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+    }
+    input, select {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 10px 14px;
+      background: var(--panel);
+      color: var(--ink);
+      font: inherit;
+    }
+    input:focus, select:focus {
+      outline: 3px solid rgba(37, 99, 235, 0.18);
+      border-color: var(--accent);
+    }
+    .tablebox {
+      overflow: auto;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 10px;
+      box-shadow: 0 18px 42px rgba(15, 23, 42, 0.07);
+    }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 1120px; }
+    th, td { border-bottom: 1px solid var(--line); padding: 14px 16px; vertical-align: top; text-align: left; }
+    th {
+      background: #17324f;
+      color: #f8fbff;
+      font-weight: 800;
+      white-space: nowrap;
+      border-bottom: 1px solid #0f253d;
+    }
+    tbody tr:hover { background: #f8fbff; }
+    .num { color: var(--accent-strong); text-align: right; width: 44px; font-weight: 800; }
+    .date { white-space: nowrap; font-weight: 800; }
+    .sub { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .venue { display: block; margin-top: 4px; min-width: 180px; }
+    .empty { color: var(--muted); }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 12px;
+      font-weight: 800;
+      background: var(--success-bg);
+      border: 0;
+      color: var(--success);
+      white-space: nowrap;
+    }
+    .badge.closed { background: #fee2e2; color: var(--danger); }
+    .badge.muted { background: #f1f5f9; color: var(--muted); }
+    .chipbox { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; margin: 8px 0 18px; }
+    .chip {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 999px;
+      padding: 8px 14px;
+      color: var(--muted);
+      font: inherit;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+    }
+    .chip b { color: var(--ink); }
+    .chip:hover, .chip:focus-visible {
+      color: var(--accent-strong);
+      border-color: #bfdbfe;
+      outline: 3px solid rgba(37, 99, 235, 0.14);
+    }
+    .chip.is-active:not(.chip-all) {
+      color: var(--accent-strong);
+      background: #eff6ff;
+      border-color: #bfdbfe;
+    }
+    .chip-all { margin-left: auto; border-color: var(--accent); background: var(--accent); color: var(--panel); }
+    .chip-all b { color: inherit; }
+    .chip-all:hover, .chip-all:focus-visible, .chip-all.is-active { border-color: var(--accent-strong); background: var(--accent-strong); color: var(--panel); }
+    a { color: var(--accent-strong); text-decoration: none; font-weight: 700; }
+    a:hover { text-decoration: underline; }
+    @media (max-width: 980px) {
+      header { grid-template-columns: 1fr; }
+      .stamp { text-align: left; }
+      .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .toolbar { grid-template-columns: 1fr 1fr; }
+      input, select { border-bottom: 1px solid var(--line); }
+    }
+    @media (max-width: 640px) {
+      .wrap { padding: 22px 14px 40px; }
+      h1 { font-size: 30px; }
+      .cards, .toolbar { grid-template-columns: 1fr; }
+      .card { border-right: 0; border-bottom: 1px solid var(--line); }
+      .card:last-child { border-bottom: 0; }
+      .chip-all { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>무료 강연·공연 경쟁사 일정 리포트</h1>
+        <p class="lead">세바여·쎈엄마를 중심으로, 무료 강연/공연/체험수업을 운영하며 후원사·상조·크루즈·보험·라이프 상품 홍보 고지가 확인되는 유사 업체 일정을 함께 정리했습니다.</p>
+      </div>
+      <div class="stamp">
+        기준일: <strong>2026-05-03</strong><br>
+        표시 기간: 2026-05-03(일) ~ 2026-07-03(금)<br>
+        생성: 2026-05-03 17:58 KST
+      </div>
+    </header>
+
+    <section class="cards">
+      <div class="card"><b>208</b><span>2개월 내 예정/오늘 포함 행사</span></div>
+      <div class="card"><b>7</b><span>추적 업체</span></div>
+      <div class="card"><b>98</b><span>구체 장소 확인</span></div>
+      <div class="card"><b>2026-05-03(일)</b><span>가장 빠른 일정</span></div>
+    </section>
+
+    
+
+    <div class="chipbox"><button type="button" class="chip" data-company-filter="글로벌AI">글로벌AI <b>22</b></button>
+<button type="button" class="chip" data-company-filter="디어데이">디어데이 <b>11</b></button>
+<button type="button" class="chip" data-company-filter="맘맘이야">맘맘이야 <b>25</b></button>
+<button type="button" class="chip" data-company-filter="세바여">세바여 <b>67</b></button>
+<button type="button" class="chip" data-company-filter="소통교육원">소통교육원 <b>1</b></button>
+<button type="button" class="chip" data-company-filter="쎈엄마">쎈엄마 <b>69</b></button>
+<button type="button" class="chip" data-company-filter="여유톡">여유톡 <b>13</b></button>
+<button type="button" class="chip chip-all is-active" data-reset-filters>전체 <b>208</b></button></div>
+
+    <section class="toolbar" aria-label="필터">
+      <input id="q" type="search" placeholder="검색: 업체, 강사, 지역, 장소, 홍보고지">
+      <select id="region"><option value="">전체 지역</option><option value="강남">강남 (4)</option>
+<option value="강동">강동 (2)</option>
+<option value="강동구">강동구 (1)</option>
+<option value="강릉">강릉 (2)</option>
+<option value="강원">강원 (4)</option>
+<option value="경기">경기 (25)</option>
+<option value="경기광주">경기광주 (1)</option>
+<option value="경남">경남 (6)</option>
+<option value="경북">경북 (2)</option>
+<option value="경주">경주 (1)</option>
+<option value="고양">고양 (1)</option>
+<option value="광명">광명 (3)</option>
+<option value="광주">광주 (5)</option>
+<option value="광진">광진 (1)</option>
+<option value="구리">구리 (1)</option>
+<option value="구미">구미 (2)</option>
+<option value="군산">군산 (1)</option>
+<option value="김포">김포 (4)</option>
+<option value="김해">김해 (2)</option>
+<option value="남양주">남양주 (1)</option>
+<option value="남원">남원 (1)</option>
+<option value="대구">대구 (7)</option>
+<option value="대전">대전 (7)</option>
+<option value="동탄">동탄 (1)</option>
+<option value="부산">부산 (13)</option>
+<option value="부천">부천 (2)</option>
+<option value="서귀포">서귀포 (2)</option>
+<option value="서울">서울 (15)</option>
+<option value="서울 중구">서울 중구 (2)</option>
+<option value="서울중구">서울중구 (1)</option>
+<option value="서초">서초 (3)</option>
+<option value="성남">성남 (2)</option>
+<option value="수원">수원 (7)</option>
+<option value="안산">안산 (5)</option>
+<option value="안양">안양 (3)</option>
+<option value="양산">양산 (2)</option>
+<option value="여수">여수 (2)</option>
+<option value="영등포">영등포 (1)</option>
+<option value="영등포구">영등포구 (1)</option>
+<option value="영천">영천 (1)</option>
+<option value="용산">용산 (1)</option>
+<option value="용인">용인 (1)</option>
+<option value="울산">울산 (6)</option>
+<option value="원주">원주 (2)</option>
+<option value="의정부">의정부 (1)</option>
+<option value="인천">인천 (10)</option>
+<option value="일산">일산 (3)</option>
+<option value="전북">전북 (1)</option>
+<option value="전주">전주 (5)</option>
+<option value="제주">제주 (2)</option>
+<option value="제천">제천 (1)</option>
+<option value="진주">진주 (1)</option>
+<option value="천안">천안 (2)</option>
+<option value="청주">청주 (6)</option>
+<option value="춘천">춘천 (1)</option>
+<option value="충남">충남 (2)</option>
+<option value="충북">충북 (3)</option>
+<option value="칠곡">칠곡 (1)</option>
+<option value="통영">통영 (1)</option>
+<option value="파주">파주 (1)</option>
+<option value="평택">평택 (3)</option>
+<option value="포항">포항 (4)</option>
+<option value="화성">화성 (2)</option>
+<option value="화성 동탄">화성 동탄 (1)</option></select>
+      <select id="company"><option value="">전체 업체</option><option value="글로벌AI">글로벌AI (22)</option>
+<option value="디어데이">디어데이 (11)</option>
+<option value="맘맘이야">맘맘이야 (25)</option>
+<option value="세바여">세바여 (67)</option>
+<option value="소통교육원">소통교육원 (1)</option>
+<option value="쎈엄마">쎈엄마 (69)</option>
+<option value="여유톡">여유톡 (13)</option></select>
+      <select id="status"><option value="">전체 상태</option><option value="공개">공개</option><option value="마감">마감/SOLDOUT</option></select>
+      <select id="venue"><option value="">전체 장소</option><option value="확인">장소 확인</option><option value="확인필요">장소 확인필요</option></select>
+    </section>
+
+    <div class="tablebox">
+      <table id="events">
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>업체/유형</th>
+            <th>강의자·공연자</th>
+            <th>날짜</th>
+            <th>시간</th>
+            <th>지역</th>
+            <th>구체 장소/주소</th>
+            <th>홍보 고지</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+            <tr data-company="글로벌AI" data-region="광진" data-status="SOLDOUT/오늘" data-venue="확인" data-search="글로벌ai교육협회 강연 제미나이 글로벌ai 제미나이 강연 광진 세종대학교 컨벤션센터 광개토관 지하1층 컨퍼런스 1홀 서울 광진구 능동로 209 후원사(보람상조) 홍보시간 포함 soldout/오늘">
+              <td class="num">1</td>
+              <td><strong>글로벌AI</strong><span class="sub">강연</span></td>
+              <td><strong>제미나이</strong><span class="sub">글로벌AI 제미나이 강연</span></td>
+              <td class="date">2026-05-03(일)</td>
+              <td>10:00~13:00</td>
+              <td>광진</td>
+              <td><span class="badge open">확인</span><strong class="venue">세종대학교 컨벤션센터 광개토관 지하1층 컨퍼런스 1홀</strong><span class="sub">서울 광진구 능동로 209</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="김해" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 허각 허각 공연 김해 김해 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">2</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>허각</strong><span class="sub">허각 공연</span></td>
+              <td class="date">2026-05-03(일)</td>
+              <td>17:50</td>
+              <td>김해</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">김해 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="대구" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 바다 바다 공연 대구 대구 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">3</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>바다</strong><span class="sub">바다 공연</span></td>
+              <td class="date">2026-05-03(일)</td>
+              <td>12:50</td>
+              <td>대구</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">대구 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="서울" data-status="마감" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 연극 ‘사랑해엄마’ 연극 ‘사랑해엄마’ 공연 서울 서울 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 마감">
+              <td class="num">4</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>연극 ‘사랑해엄마’</strong><span class="sub">연극 ‘사랑해엄마’ 공연</span></td>
+              <td class="date">2026-05-03(일)</td>
+              <td>마감</td>
+              <td>서울</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">서울 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="글로벌AI" data-region="용인" data-status="SOLDOUT" data-venue="확인필요" data-search="글로벌ai교육협회 강연 제미나이 글로벌ai 제미나이 강연 용인 상세 장소 미확인  후원사(보람상조) 홍보시간 포함 soldout">
+              <td class="num">5</td>
+              <td><strong>글로벌AI</strong><span class="sub">강연</span></td>
+              <td><strong>제미나이</strong><span class="sub">글로벌AI 제미나이 강연</span></td>
+              <td class="date">2026-05-04(월)</td>
+              <td>10:00~13:00</td>
+              <td>용인</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="디어데이" data-region="칠곡" data-status="공개" data-venue="확인" data-search="디어데이클래스 무료 특강 제미나이 칠곡 생활 속 ai 제미나이 활용법 칠곡 리베라웨딩뷔페 2층 목련홀 경북 칠곡군 왜관읍 전원1길 39-1 무료 특강, 후원사/상품 홍보 여부 상세 확인 필요 공개">
+              <td class="num">6</td>
+              <td><strong>디어데이</strong><span class="sub">무료 특강</span></td>
+              <td><strong>제미나이</strong><span class="sub">칠곡 생활 속 AI 제미나이 활용법</span></td>
+              <td class="date">2026-05-04(월)</td>
+              <td>10:00~13:00</td>
+              <td>칠곡</td>
+              <td><span class="badge open">확인</span><strong class="venue">리베라웨딩뷔페 2층 목련홀</strong><span class="sub">경북 칠곡군 왜관읍 전원1길 39-1</span></td>
+              <td>무료 특강, 후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="광주" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 vos vos 공연 광주 광주 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">7</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>VOS</strong><span class="sub">VOS 공연</span></td>
+              <td class="date">2026-05-05(화)</td>
+              <td>18:50</td>
+              <td>광주</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">광주 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="부산" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 바다 바다 공연 부산 부산 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">8</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>바다</strong><span class="sub">바다 공연</span></td>
+              <td class="date">2026-05-05(화)</td>
+              <td>18:50</td>
+              <td>부산</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">부산 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="글로벌AI" data-region="구리" data-status="공개" data-venue="확인필요" data-search="글로벌ai교육협회 강연 제미나이 글로벌ai 제미나이 강연 구리 상세 장소 미확인  후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">9</td>
+              <td><strong>글로벌AI</strong><span class="sub">강연</span></td>
+              <td><strong>제미나이</strong><span class="sub">글로벌AI 제미나이 강연</span></td>
+              <td class="date">2026-05-06(수)</td>
+              <td>10:00~13:00</td>
+              <td>구리</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="글로벌AI" data-region="양산" data-status="공개" data-venue="확인필요" data-search="글로벌ai교육협회 강연 제미나이 글로벌ai 제미나이 강연 양산 상세 장소 미확인  후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">10</td>
+              <td><strong>글로벌AI</strong><span class="sub">강연</span></td>
+              <td><strong>제미나이</strong><span class="sub">글로벌AI 제미나이 강연</span></td>
+              <td class="date">2026-05-06(수)</td>
+              <td>10:00~13:00</td>
+              <td>양산</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="안양" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 바다 바다 공연 안양 안양 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">11</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>바다</strong><span class="sub">바다 공연</span></td>
+              <td class="date">2026-05-07(목)</td>
+              <td>19:20</td>
+              <td>안양</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">안양 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="포항" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 허각 허각 공연 포항 포항 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">12</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>허각</strong><span class="sub">허각 공연</span></td>
+              <td class="date">2026-05-07(목)</td>
+              <td>19:20</td>
+              <td>포항</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">포항 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경기" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 강형욱 [경기] 05/07 (목) 남양주 강형욱 경기 다이닝몽드 다산점 b1층 경기 남양주시 다산지금로 202 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">13</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>강형욱</strong><span class="sub">[경기] 05/07 (목) 남양주 강형욱</span></td>
+              <td class="date">2026-05-07(목)</td>
+              <td>10:20~13:30</td>
+              <td>경기</td>
+              <td><span class="badge open">확인</span><strong class="venue">다이닝몽드 다산점 B1층</strong><span class="sub">경기 남양주시 다산지금로 202</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경기" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 챗gpt [경기] 05/07 (목) 경기광주 챗gpt 경기 광주하남상공회의소 2층 경기 광주시 행정타운로69가길 8 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">14</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>챗GPT</strong><span class="sub">[경기] 05/07 (목) 경기광주 챗GPT</span></td>
+              <td class="date">2026-05-07(목)</td>
+              <td>10:20~13:30</td>
+              <td>경기</td>
+              <td><span class="badge open">확인</span><strong class="venue">광주하남상공회의소 2층</strong><span class="sub">경기 광주시 행정타운로69가길 8</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="글로벌AI" data-region="진주" data-status="공개" data-venue="확인필요" data-search="글로벌ai교육협회 강연 제미나이 글로벌ai 제미나이 강연 진주 상세 장소 미확인  후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">15</td>
+              <td><strong>글로벌AI</strong><span class="sub">강연</span></td>
+              <td><strong>제미나이</strong><span class="sub">글로벌AI 제미나이 강연</span></td>
+              <td class="date">2026-05-08(금)</td>
+              <td>10:00~13:00</td>
+              <td>진주</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="디어데이" data-region="고양" data-status="공개" data-venue="확인" data-search="디어데이클래스 무료 강연 장동민 고양 장동민 무료강연 고양 킨텍스 제2전시장 301호 경기 고양시 일산서구 킨텍스로 217-59 무료 강연, 후원사/상품 홍보 여부 상세 확인 필요 공개">
+              <td class="num">16</td>
+              <td><strong>디어데이</strong><span class="sub">무료 강연</span></td>
+              <td><strong>장동민</strong><span class="sub">고양 장동민 무료강연</span></td>
+              <td class="date">2026-05-08(금)</td>
+              <td>19:20~22:00</td>
+              <td>고양</td>
+              <td><span class="badge open">확인</span><strong class="venue">킨텍스 제2전시장 301호</strong><span class="sub">경기 고양시 일산서구 킨텍스로 217-59</span></td>
+              <td>무료 강연, 후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="대구" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 민경훈 민경훈 공연 대구 대구 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">17</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>민경훈</strong><span class="sub">민경훈 공연</span></td>
+              <td class="date">2026-05-08(금)</td>
+              <td>19:20</td>
+              <td>대구</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">대구 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="대전" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 조째즈 조째즈 공연 대전 대전 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">18</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>조째즈</strong><span class="sub">조째즈 공연</span></td>
+              <td class="date">2026-05-08(금)</td>
+              <td>19:20</td>
+              <td>대전</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">대전 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경기" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 강형욱 [경기] 05/08 (금) 평택 강형욱 경기 티웨딩홀 7층 경기 평택시 평택5로34번길 6-5 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">19</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>강형욱</strong><span class="sub">[경기] 05/08 (금) 평택 강형욱</span></td>
+              <td class="date">2026-05-08(금)</td>
+              <td>10:20~13:30</td>
+              <td>경기</td>
+              <td><span class="badge open">확인</span><strong class="venue">티웨딩홀 7층</strong><span class="sub">경기 평택시 평택5로34번길 6-5</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경북" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 김태균 [경북] 05/08 (금) 구미 김태균 경북 구미코 3층 경북 구미시 산동읍 첨단기업1로 49 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">20</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>김태균</strong><span class="sub">[경북] 05/08 (금) 구미 김태균</span></td>
+              <td class="date">2026-05-08(금)</td>
+              <td>10:20~13:30</td>
+              <td>경북</td>
+              <td><span class="badge open">확인</span><strong class="venue">구미코 3층</strong><span class="sub">경북 구미시 산동읍 첨단기업1로 49</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="글로벌AI" data-region="수원" data-status="공개" data-venue="확인" data-search="글로벌ai교육협회 강연 제미나이 글로벌ai 제미나이 강연 수원 노보텔 앰배서더 수원 2층 아잘레아홀 경기 수원시 팔달구 덕영대로 902 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">21</td>
+              <td><strong>글로벌AI</strong><span class="sub">강연</span></td>
+              <td><strong>제미나이</strong><span class="sub">글로벌AI 제미나이 강연</span></td>
+              <td class="date">2026-05-09(토)</td>
+              <td>10:00~13:00</td>
+              <td>수원</td>
+              <td><span class="badge open">확인</span><strong class="venue">노보텔 앰배서더 수원 2층 아잘레아홀</strong><span class="sub">경기 수원시 팔달구 덕영대로 902</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="디어데이" data-region="성남" data-status="공개" data-venue="확인" data-search="디어데이클래스 무료 특강 제미나이 성남 생활 속 ai 제미나이 활용법 성남 호텔 스카이파크 센트럴 서울 판교 1층 아트홀 경기 성남시 분당구 황새울로311번길 36 무료 특강, 후원사/상품 홍보 여부 상세 확인 필요 공개">
+              <td class="num">22</td>
+              <td><strong>디어데이</strong><span class="sub">무료 특강</span></td>
+              <td><strong>제미나이</strong><span class="sub">성남 생활 속 AI 제미나이 활용법</span></td>
+              <td class="date">2026-05-09(토)</td>
+              <td>10:00~13:00</td>
+              <td>성남</td>
+              <td><span class="badge open">확인</span><strong class="venue">호텔 스카이파크 센트럴 서울 판교 1층 아트홀</strong><span class="sub">경기 성남시 분당구 황새울로311번길 36</span></td>
+              <td>무료 특강, 후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="강동" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 바다 바다 공연 강동 강동 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">23</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>바다</strong><span class="sub">바다 공연</span></td>
+              <td class="date">2026-05-09(토)</td>
+              <td>16:50</td>
+              <td>강동</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">강동 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="여수" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 김동하 김동하 공연 여수 여수 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">24</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>김동하</strong><span class="sub">김동하 공연</span></td>
+              <td class="date">2026-05-09(토)</td>
+              <td>13:50</td>
+              <td>여수</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">여수 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="통영" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 김동하 김동하 공연 통영 통영 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">25</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>김동하</strong><span class="sub">김동하 공연</span></td>
+              <td class="date">2026-05-09(토)</td>
+              <td>18:50</td>
+              <td>통영</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">통영 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경기" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 김미경 [경기] 05/09 (토) 화성 김미경 경기 화성상공회의소 4층 경기 화성시 향남읍 토성로 14 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">26</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>김미경</strong><span class="sub">[경기] 05/09 (토) 화성 김미경</span></td>
+              <td class="date">2026-05-09(토)</td>
+              <td>11:00~14:10</td>
+              <td>경기</td>
+              <td><span class="badge open">확인</span><strong class="venue">화성상공회의소 4층</strong><span class="sub">경기 화성시 향남읍 토성로 14</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경남" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 강형욱 [경남] 05/09 (토) 거제 강형욱 경남 호텔리베라 거제 b동 로비층 경남 거제시 일운면 거제대로 2190 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">27</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>강형욱</strong><span class="sub">[경남] 05/09 (토) 거제 강형욱</span></td>
+              <td class="date">2026-05-09(토)</td>
+              <td>11:00~14:10</td>
+              <td>경남</td>
+              <td><span class="badge open">확인</span><strong class="venue">호텔리베라 거제 B동 로비층</strong><span class="sub">경남 거제시 일운면 거제대로 2190</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="여유톡" data-region="부천" data-status="공개" data-venue="확인" data-search="여유톡 무료 공연 지브리&amp;뮤지컬 ost 부천 지브리&amp;뮤지컬 ost 페스타 부천 송내어울마당 4층 솔안아트홀 경기 부천시 소사구 송내동 387-4 무료 공연, 후원사/상품 홍보 여부 상세 확인 필요 공개">
+              <td class="num">28</td>
+              <td><strong>여유톡</strong><span class="sub">무료 공연</span></td>
+              <td><strong>지브리&amp;뮤지컬 OST</strong><span class="sub">부천 지브리&amp;뮤지컬 OST 페스타</span></td>
+              <td class="date">2026-05-09(토)</td>
+              <td>17:00~19:30</td>
+              <td>부천</td>
+              <td><span class="badge open">확인</span><strong class="venue">송내어울마당 4층 솔안아트홀</strong><span class="sub">경기 부천시 소사구 송내동 387-4</span></td>
+              <td>무료 공연, 후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="글로벌AI" data-region="파주" data-status="공개" data-venue="확인필요" data-search="글로벌ai교육협회 강연 제미나이 글로벌ai 제미나이 강연 파주 상세 장소 미확인  후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">29</td>
+              <td><strong>글로벌AI</strong><span class="sub">강연</span></td>
+              <td><strong>제미나이</strong><span class="sub">글로벌AI 제미나이 강연</span></td>
+              <td class="date">2026-05-10(일)</td>
+              <td>10:00~13:00</td>
+              <td>파주</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="디어데이" data-region="안산" data-status="공개" data-venue="확인" data-search="디어데이클래스 무료 특강 제미나이 안산 생활 속 ai 제미나이 활용법 안산 호텔 스퀘어 안산 3층 장미홀 경기 안산시 단원구 동산로 81 무료 특강, 후원사/상품 홍보 여부 상세 확인 필요 공개">
+              <td class="num">30</td>
+              <td><strong>디어데이</strong><span class="sub">무료 특강</span></td>
+              <td><strong>제미나이</strong><span class="sub">안산 생활 속 AI 제미나이 활용법</span></td>
+              <td class="date">2026-05-10(일)</td>
+              <td>10:00~13:00</td>
+              <td>안산</td>
+              <td><span class="badge open">확인</span><strong class="venue">호텔 스퀘어 안산 3층 장미홀</strong><span class="sub">경기 안산시 단원구 동산로 81</span></td>
+              <td>무료 특강, 후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="대전" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 김동하 김동하 공연 대전 대전 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">31</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>김동하</strong><span class="sub">김동하 공연</span></td>
+              <td class="date">2026-05-10(일)</td>
+              <td>18:50</td>
+              <td>대전</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">대전 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="양산" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 김동하 김동하 공연 양산 양산 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">32</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>김동하</strong><span class="sub">김동하 공연</span></td>
+              <td class="date">2026-05-10(일)</td>
+              <td>12:50</td>
+              <td>양산</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">양산 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="대구" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 김기태 [대구] 05/10 (일) 대구 김기태 대구 대구 그랜드호텔 2층 대구 수성구 동대구로 305 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">33</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>김기태</strong><span class="sub">[대구] 05/10 (일) 대구 김기태</span></td>
+              <td class="date">2026-05-10(일)</td>
+              <td>16:00~18:30</td>
+              <td>대구</td>
+              <td><span class="badge open">확인</span><strong class="venue">대구 그랜드호텔 2층</strong><span class="sub">대구 수성구 동대구로 305</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="서울" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 이수영 [서울] 05/10 (일) 강동 이수영 서울 호원아트홀 b1층 서울 강동구 성안로 30 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">34</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>이수영</strong><span class="sub">[서울] 05/10 (일) 강동 이수영</span></td>
+              <td class="date">2026-05-10(일)</td>
+              <td>15:00~17:30</td>
+              <td>서울</td>
+              <td><span class="badge open">확인</span><strong class="venue">호원아트홀 B1층</strong><span class="sub">서울 강동구 성안로 30</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="글로벌AI" data-region="강릉" data-status="공개" data-venue="확인필요" data-search="글로벌ai교육협회 강연 제미나이 글로벌ai 제미나이 강연 강릉 상세 장소 미확인  후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">35</td>
+              <td><strong>글로벌AI</strong><span class="sub">강연</span></td>
+              <td><strong>제미나이</strong><span class="sub">글로벌AI 제미나이 강연</span></td>
+              <td class="date">2026-05-11(월)</td>
+              <td>10:00~13:00</td>
+              <td>강릉</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="글로벌AI" data-region="전주" data-status="공개" data-venue="확인필요" data-search="글로벌ai교육협회 강연 제미나이 글로벌ai 제미나이 강연 전주 상세 장소 미확인  후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">36</td>
+              <td><strong>글로벌AI</strong><span class="sub">강연</span></td>
+              <td><strong>제미나이</strong><span class="sub">글로벌AI 제미나이 강연</span></td>
+              <td class="date">2026-05-11(월)</td>
+              <td>10:00~13:00</td>
+              <td>전주</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="맘맘이야" data-region="인천" data-status="공개" data-venue="확인필요" data-search="맘맘이야 무료 체험수업 체험수업(품목 미공개) 공식 목록상 세부 품목 미공개 인천 상세 장소 미확인  홍보 여부 상세 확인 필요 공개 맘마미아 mommomia">
+              <td class="num">37</td>
+              <td><strong>맘맘이야</strong><span class="sub">무료 체험수업</span></td>
+              <td><strong>체험수업(품목 미공개)</strong><span class="sub">공식 목록상 세부 품목 미공개</span></td>
+              <td class="date">2026-05-11(월)</td>
+              <td><span class="empty">미확인</span></td>
+              <td>인천</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="안산" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 김동하 김동하 공연 안산 안산 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">38</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>김동하</strong><span class="sub">김동하 공연</span></td>
+              <td class="date">2026-05-11(월)</td>
+              <td>19:20</td>
+              <td>안산</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">안산 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="글로벌AI" data-region="군산" data-status="공개" data-venue="확인필요" data-search="글로벌ai교육협회 강연 제미나이 글로벌ai 제미나이 강연 군산 상세 장소 미확인  후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">39</td>
+              <td><strong>글로벌AI</strong><span class="sub">강연</span></td>
+              <td><strong>제미나이</strong><span class="sub">글로벌AI 제미나이 강연</span></td>
+              <td class="date">2026-05-12(화)</td>
+              <td>10:00~13:00</td>
+              <td>군산</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="맘맘이야" data-region="제주" data-status="공개" data-venue="확인필요" data-search="맘맘이야 무료 체험수업 체험수업(품목 미공개) 공식 목록상 세부 품목 미공개 제주 상세 장소 미확인  홍보 여부 상세 확인 필요 공개 맘마미아 mommomia">
+              <td class="num">40</td>
+              <td><strong>맘맘이야</strong><span class="sub">무료 체험수업</span></td>
+              <td><strong>체험수업(품목 미공개)</strong><span class="sub">공식 목록상 세부 품목 미공개</span></td>
+              <td class="date">2026-05-12(화)</td>
+              <td><span class="empty">미확인</span></td>
+              <td>제주</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="강동" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 김동하 김동하 공연 강동 강동 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">41</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>김동하</strong><span class="sub">김동하 공연</span></td>
+              <td class="date">2026-05-12(화)</td>
+              <td>19:20</td>
+              <td>강동</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">강동 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="부산" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 민경훈 민경훈 공연 부산 부산 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">42</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>민경훈</strong><span class="sub">민경훈 공연</span></td>
+              <td class="date">2026-05-12(화)</td>
+              <td>19:20</td>
+              <td>부산</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">부산 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경남" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 김미경 [경남] 05/12 (화) 진주 김미경 경남 엠비씨컨벤션진주 1층 경남 진주시 동진로 415 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">43</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>김미경</strong><span class="sub">[경남] 05/12 (화) 진주 김미경</span></td>
+              <td class="date">2026-05-12(화)</td>
+              <td>11:00~14:10</td>
+              <td>경남</td>
+              <td><span class="badge open">확인</span><strong class="venue">엠비씨컨벤션진주 1층</strong><span class="sub">경남 진주시 동진로 415</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="여유톡" data-region="수원" data-status="공개" data-venue="확인" data-search="여유톡 무료 공연 지브리&amp;뮤지컬 ost 수원 지브리&amp;뮤지컬 ost 페스타 수원 ak플라자 수원 6층 ak아트홀 경기 수원시 팔달구 덕영대로 924 무료 공연, 후원사/상품 홍보 여부 상세 확인 필요 공개">
+              <td class="num">44</td>
+              <td><strong>여유톡</strong><span class="sub">무료 공연</span></td>
+              <td><strong>지브리&amp;뮤지컬 OST</strong><span class="sub">수원 지브리&amp;뮤지컬 OST 페스타</span></td>
+              <td class="date">2026-05-12(화)</td>
+              <td>11:00~14:00</td>
+              <td>수원</td>
+              <td><span class="badge open">확인</span><strong class="venue">AK플라자 수원 6층 AK아트홀</strong><span class="sub">경기 수원시 팔달구 덕영대로 924</span></td>
+              <td>무료 공연, 후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="글로벌AI" data-region="부산" data-status="공개" data-venue="확인필요" data-search="글로벌ai교육협회 강연 제미나이 글로벌ai 제미나이 강연 부산 상세 장소 미확인  후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">45</td>
+              <td><strong>글로벌AI</strong><span class="sub">강연</span></td>
+              <td><strong>제미나이</strong><span class="sub">글로벌AI 제미나이 강연</span></td>
+              <td class="date">2026-05-13(수)</td>
+              <td>10:00~13:00</td>
+              <td>부산</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="글로벌AI" data-region="원주" data-status="공개" data-venue="확인필요" data-search="글로벌ai교육협회 강연 제미나이 글로벌ai 제미나이 강연 원주 상세 장소 미확인  후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">46</td>
+              <td><strong>글로벌AI</strong><span class="sub">강연</span></td>
+              <td><strong>제미나이</strong><span class="sub">글로벌AI 제미나이 강연</span></td>
+              <td class="date">2026-05-13(수)</td>
+              <td>10:00~13:00</td>
+              <td>원주</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="맘맘이야" data-region="서귀포" data-status="공개" data-venue="확인필요" data-search="맘맘이야 무료 체험수업 체험수업(품목 미공개) 공식 목록상 세부 품목 미공개 서귀포 상세 장소 미확인  홍보 여부 상세 확인 필요 공개 맘마미아 mommomia">
+              <td class="num">47</td>
+              <td><strong>맘맘이야</strong><span class="sub">무료 체험수업</span></td>
+              <td><strong>체험수업(품목 미공개)</strong><span class="sub">공식 목록상 세부 품목 미공개</span></td>
+              <td class="date">2026-05-13(수)</td>
+              <td><span class="empty">미확인</span></td>
+              <td>서귀포</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="맘맘이야" data-region="영등포" data-status="공개" data-venue="확인필요" data-search="맘맘이야 무료 체험수업 체험수업(품목 미공개) 공식 목록상 세부 품목 미공개 영등포 상세 장소 미확인  홍보 여부 상세 확인 필요 공개 맘마미아 mommomia">
+              <td class="num">48</td>
+              <td><strong>맘맘이야</strong><span class="sub">무료 체험수업</span></td>
+              <td><strong>체험수업(품목 미공개)</strong><span class="sub">공식 목록상 세부 품목 미공개</span></td>
+              <td class="date">2026-05-13(수)</td>
+              <td><span class="empty">미확인</span></td>
+              <td>영등포</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="서초" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 케이시 케이시 공연 서초 서초 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">49</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>케이시</strong><span class="sub">케이시 공연</span></td>
+              <td class="date">2026-05-13(수)</td>
+              <td>19:20</td>
+              <td>서초</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">서초 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="울산" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 바다 바다 공연 울산 울산 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">50</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>바다</strong><span class="sub">바다 공연</span></td>
+              <td class="date">2026-05-13(수)</td>
+              <td>19:20</td>
+              <td>울산</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">울산 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="인천" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 챗gpt [인천] 05/13 (수) 인천 챗gpt 인천 하버파크호텔 15층 인천 중구 제물량로 217 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">51</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>챗GPT</strong><span class="sub">[인천] 05/13 (수) 인천 챗GPT</span></td>
+              <td class="date">2026-05-13(수)</td>
+              <td>10:20~13:30</td>
+              <td>인천</td>
+              <td><span class="badge open">확인</span><strong class="venue">하버파크호텔 15층</strong><span class="sub">인천 중구 제물량로 217</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="여유톡" data-region="인천" data-status="공개" data-venue="확인" data-search="여유톡 무료 공연 지브리&amp;뮤지컬 ost 인천 지브리&amp;뮤지컬 ost 페스타 인천 엘림아트센터 6층 엘림홀 인천 서구 크리스탈로 78 무료 공연, 후원사/상품 홍보 여부 상세 확인 필요 공개">
+              <td class="num">52</td>
+              <td><strong>여유톡</strong><span class="sub">무료 공연</span></td>
+              <td><strong>지브리&amp;뮤지컬 OST</strong><span class="sub">인천 지브리&amp;뮤지컬 OST 페스타</span></td>
+              <td class="date">2026-05-13(수)</td>
+              <td>10:20~13:20</td>
+              <td>인천</td>
+              <td><span class="badge open">확인</span><strong class="venue">엘림아트센터 6층 엘림홀</strong><span class="sub">인천 서구 크리스탈로 78</span></td>
+              <td>무료 공연, 후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="글로벌AI" data-region="제천" data-status="공개" data-venue="확인필요" data-search="글로벌ai교육협회 강연 제미나이 글로벌ai 제미나이 강연 제천 상세 장소 미확인  후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">53</td>
+              <td><strong>글로벌AI</strong><span class="sub">강연</span></td>
+              <td><strong>제미나이</strong><span class="sub">글로벌AI 제미나이 강연</span></td>
+              <td class="date">2026-05-14(목)</td>
+              <td>10:00~13:00</td>
+              <td>제천</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="디어데이" data-region="울산" data-status="공개" data-venue="확인" data-search="디어데이클래스 무료 공연 이상준 울산 이상준 무료 힐링토크쇼 울산 jw컨벤션센터 3층 그랜드볼룸 울산 북구 진장유통로 35 무료 공연, 후원사/상품 홍보 여부 상세 확인 필요 공개">
+              <td class="num">54</td>
+              <td><strong>디어데이</strong><span class="sub">무료 공연</span></td>
+              <td><strong>이상준</strong><span class="sub">울산 이상준 무료 힐링토크쇼</span></td>
+              <td class="date">2026-05-14(목)</td>
+              <td>19:20~22:00</td>
+              <td>울산</td>
+              <td><span class="badge open">확인</span><strong class="venue">JW컨벤션센터 3층 그랜드볼룸</strong><span class="sub">울산 북구 진장유통로 35</span></td>
+              <td>무료 공연, 후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="맘맘이야" data-region="부천" data-status="공개" data-venue="확인필요" data-search="맘맘이야 무료 체험수업 체험수업(품목 미공개) 공식 목록상 세부 품목 미공개 부천 상세 장소 미확인  홍보 여부 상세 확인 필요 공개 맘마미아 mommomia">
+              <td class="num">55</td>
+              <td><strong>맘맘이야</strong><span class="sub">무료 체험수업</span></td>
+              <td><strong>체험수업(품목 미공개)</strong><span class="sub">공식 목록상 세부 품목 미공개</span></td>
+              <td class="date">2026-05-14(목)</td>
+              <td><span class="empty">미확인</span></td>
+              <td>부천</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="맘맘이야" data-region="서귀포" data-status="공개" data-venue="확인필요" data-search="맘맘이야 무료 체험수업 체험수업(품목 미공개) 공식 목록상 세부 품목 미공개 서귀포 상세 장소 미확인  홍보 여부 상세 확인 필요 공개 맘마미아 mommomia">
+              <td class="num">56</td>
+              <td><strong>맘맘이야</strong><span class="sub">무료 체험수업</span></td>
+              <td><strong>체험수업(품목 미공개)</strong><span class="sub">공식 목록상 세부 품목 미공개</span></td>
+              <td class="date">2026-05-14(목)</td>
+              <td><span class="empty">미확인</span></td>
+              <td>서귀포</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="서울중구" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 김완선 김완선 공연 서울중구 서울중구 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">57</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>김완선</strong><span class="sub">김완선 공연</span></td>
+              <td class="date">2026-05-14(목)</td>
+              <td>19:20</td>
+              <td>서울중구</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">서울중구 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="천안" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 강연 최민준 강사 최민준 강사 강연 천안 천안 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">58</td>
+              <td><strong>세바여</strong><span class="sub">강연</span></td>
+              <td><strong>최민준 강사</strong><span class="sub">최민준 강사 강연</span></td>
+              <td class="date">2026-05-14(목)</td>
+              <td>10:20</td>
+              <td>천안</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">천안 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="서울" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 제미나이 [서울] 05/14 (목) 서대문 제미나이 서울 코지모임공간 신촌점 14층 서울 서대문구 연세로 8-1 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">59</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>제미나이</strong><span class="sub">[서울] 05/14 (목) 서대문 제미나이</span></td>
+              <td class="date">2026-05-14(목)</td>
+              <td>10:20~13:30</td>
+              <td>서울</td>
+              <td><span class="badge open">확인</span><strong class="venue">코지모임공간 신촌점 14층</strong><span class="sub">서울 서대문구 연세로 8-1</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="디어데이" data-region="포항" data-status="공개" data-venue="확인" data-search="디어데이클래스 무료 공연 이상준 포항 이상준 무료 힐링토크쇼 포항 라한호텔 포항 5층 그랜드홀 경북 포항시 북구 삼호로265번길 1 무료 공연, 후원사/상품 홍보 여부 상세 확인 필요 공개">
+              <td class="num">60</td>
+              <td><strong>디어데이</strong><span class="sub">무료 공연</span></td>
+              <td><strong>이상준</strong><span class="sub">포항 이상준 무료 힐링토크쇼</span></td>
+              <td class="date">2026-05-15(금)</td>
+              <td>19:20~22:00</td>
+              <td>포항</td>
+              <td><span class="badge open">확인</span><strong class="venue">라한호텔 포항 5층 그랜드홀</strong><span class="sub">경북 포항시 북구 삼호로265번길 1</span></td>
+              <td>무료 공연, 후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="맘맘이야" data-region="제주" data-status="공개" data-venue="확인필요" data-search="맘맘이야 무료 체험수업 체험수업(품목 미공개) 공식 목록상 세부 품목 미공개 제주 상세 장소 미확인  홍보 여부 상세 확인 필요 공개 맘마미아 mommomia">
+              <td class="num">61</td>
+              <td><strong>맘맘이야</strong><span class="sub">무료 체험수업</span></td>
+              <td><strong>체험수업(품목 미공개)</strong><span class="sub">공식 목록상 세부 품목 미공개</span></td>
+              <td class="date">2026-05-15(금)</td>
+              <td><span class="empty">미확인</span></td>
+              <td>제주</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="김해" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 민경훈 민경훈 공연 김해 김해 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">62</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>민경훈</strong><span class="sub">민경훈 공연</span></td>
+              <td class="date">2026-05-15(금)</td>
+              <td>19:20</td>
+              <td>김해</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">김해 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="소통교육원" data-region="서울 중구" data-status="공개" data-venue="확인" data-search="소통교육원 강연 이도혜 이도혜 무료 강연 서울 중구 동국대학교 문화관 강당 a(덕암세미나실) 서울 중구 필동로1길 30 본 행사는 후원사(보람상조)의 홍보시간이 포함됨 공개">
+              <td class="num">63</td>
+              <td><strong>소통교육원</strong><span class="sub">강연</span></td>
+              <td><strong>이도혜</strong><span class="sub">이도혜 무료 강연</span></td>
+              <td class="date">2026-05-15(금)</td>
+              <td>10:00~13:00</td>
+              <td>서울 중구</td>
+              <td><span class="badge open">확인</span><strong class="venue">동국대학교 문화관 강당 A(덕암세미나실)</strong><span class="sub">서울 중구 필동로1길 30</span></td>
+              <td>본 행사는 후원사(보람상조)의 홍보시간이 포함됨</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="강원" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 강형욱 [강원] 05/15 (금) 강릉 강형욱 강원 세인트컨벤션웨딩 3층 강원특별자치도 강릉시 공항길127번길 19 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">64</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>강형욱</strong><span class="sub">[강원] 05/15 (금) 강릉 강형욱</span></td>
+              <td class="date">2026-05-15(금)</td>
+              <td>10:20~13:30</td>
+              <td>강원</td>
+              <td><span class="badge open">확인</span><strong class="venue">세인트컨벤션웨딩 3층</strong><span class="sub">강원특별자치도 강릉시 공항길127번길 19</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="여유톡" data-region="안산" data-status="공개" data-venue="확인" data-search="여유톡 무료 공연 지브리&amp;뮤지컬 ost 안산 지브리&amp;뮤지컬 ost 페스타 안산 에리카컨벤션센터 3층 컨벤션홀 경기 안산시 상록구 한양대학로 55 무료 공연, 후원사/상품 홍보 여부 상세 확인 필요 공개">
+              <td class="num">65</td>
+              <td><strong>여유톡</strong><span class="sub">무료 공연</span></td>
+              <td><strong>지브리&amp;뮤지컬 OST</strong><span class="sub">안산 지브리&amp;뮤지컬 OST 페스타</span></td>
+              <td class="date">2026-05-15(금)</td>
+              <td>19:00~21:30</td>
+              <td>안산</td>
+              <td><span class="badge open">확인</span><strong class="venue">에리카컨벤션센터 3층 컨벤션홀</strong><span class="sub">경기 안산시 상록구 한양대학로 55</span></td>
+              <td>무료 공연, 후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="디어데이" data-region="대전" data-status="공개" data-venue="확인" data-search="디어데이클래스 무료 공연 이상준 대전 이상준 무료 힐링토크쇼 대전 목원대학교 1층 콘서트홀 대전 서구 도안북로 88 무료 공연, 후원사/상품 홍보 여부 상세 확인 필요 공개">
+              <td class="num">66</td>
+              <td><strong>디어데이</strong><span class="sub">무료 공연</span></td>
+              <td><strong>이상준</strong><span class="sub">대전 이상준 무료 힐링토크쇼</span></td>
+              <td class="date">2026-05-16(토)</td>
+              <td>15:00~18:00</td>
+              <td>대전</td>
+              <td><span class="badge open">확인</span><strong class="venue">목원대학교 1층 콘서트홀</strong><span class="sub">대전 서구 도안북로 88</span></td>
+              <td>무료 공연, 후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="디어데이" data-region="평택" data-status="공개" data-venue="확인" data-search="디어데이클래스 무료 특강 제미나이 평택 생활 속 ai 제미나이 활용법 평택 평택대학교 제2피어선빌딩 가동 2층 소강당 경기 평택시 서동대로 3825 무료 특강, 후원사/상품 홍보 여부 상세 확인 필요 공개">
+              <td class="num">67</td>
+              <td><strong>디어데이</strong><span class="sub">무료 특강</span></td>
+              <td><strong>제미나이</strong><span class="sub">평택 생활 속 AI 제미나이 활용법</span></td>
+              <td class="date">2026-05-16(토)</td>
+              <td>10:00~13:00</td>
+              <td>평택</td>
+              <td><span class="badge open">확인</span><strong class="venue">평택대학교 제2피어선빌딩 가동 2층 소강당</strong><span class="sub">경기 평택시 서동대로 3825</span></td>
+              <td>무료 특강, 후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="강남" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 이은미 이은미 공연 강남 강남 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">68</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>이은미</strong><span class="sub">이은미 공연</span></td>
+              <td class="date">2026-05-16(토)</td>
+              <td>16:50</td>
+              <td>강남</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">강남 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경기" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 김미경 [경기] 05/16 (토) 안양 김미경 경기 성결대학교기념관 5층 경기 안양시 만안구 성결대학로 53 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">69</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>김미경</strong><span class="sub">[경기] 05/16 (토) 안양 김미경</span></td>
+              <td class="date">2026-05-16(토)</td>
+              <td>11:00~14:10</td>
+              <td>경기</td>
+              <td><span class="badge open">확인</span><strong class="venue">성결대학교기념관 5층</strong><span class="sub">경기 안양시 만안구 성결대학로 53</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경기" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 김영철 [경기] 05/16 (토) 위례 김영철 경기 밀리토피아호텔 바이마린 웨딩센터 5층 경기 성남시 수정구 위례대로 83 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">70</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>김영철</strong><span class="sub">[경기] 05/16 (토) 위례 김영철</span></td>
+              <td class="date">2026-05-16(토)</td>
+              <td>16:00~19:10</td>
+              <td>경기</td>
+              <td><span class="badge open">확인</span><strong class="venue">밀리토피아호텔 바이마린 웨딩센터 5층</strong><span class="sub">경기 성남시 수정구 위례대로 83</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="여유톡" data-region="전주" data-status="공개" data-venue="확인" data-search="여유톡 무료 공연 지브리&amp;뮤지컬 ost 전주 지브리&amp;뮤지컬 ost 페스타 1부 전주 전주비전대학교 비전관 4층 대강당 전북특별자치도 전주시 완산구 천잠로 235 무료 공연, 후원사/상품 홍보 여부 상세 확인 필요 공개">
+              <td class="num">71</td>
+              <td><strong>여유톡</strong><span class="sub">무료 공연</span></td>
+              <td><strong>지브리&amp;뮤지컬 OST</strong><span class="sub">전주 지브리&amp;뮤지컬 OST 페스타 1부</span></td>
+              <td class="date">2026-05-16(토)</td>
+              <td>13:00~15:30</td>
+              <td>전주</td>
+              <td><span class="badge open">확인</span><strong class="venue">전주비전대학교 비전관 4층 대강당</strong><span class="sub">전북특별자치도 전주시 완산구 천잠로 235</span></td>
+              <td>무료 공연, 후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="여유톡" data-region="전주" data-status="공개" data-venue="확인" data-search="여유톡 무료 공연 지브리&amp;뮤지컬 ost 전주 지브리&amp;뮤지컬 ost 페스타 2부 전주 전주비전대학교 비전관 4층 대강당 전북특별자치도 전주시 완산구 천잠로 235 무료 공연, 후원사/상품 홍보 여부 상세 확인 필요 공개">
+              <td class="num">72</td>
+              <td><strong>여유톡</strong><span class="sub">무료 공연</span></td>
+              <td><strong>지브리&amp;뮤지컬 OST</strong><span class="sub">전주 지브리&amp;뮤지컬 OST 페스타 2부</span></td>
+              <td class="date">2026-05-16(토)</td>
+              <td>17:00~19:30</td>
+              <td>전주</td>
+              <td><span class="badge open">확인</span><strong class="venue">전주비전대학교 비전관 4층 대강당</strong><span class="sub">전북특별자치도 전주시 완산구 천잠로 235</span></td>
+              <td>무료 공연, 후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="디어데이" data-region="부산" data-status="공개" data-venue="확인" data-search="디어데이클래스 무료 공연 이제규 부산 이제규 무료 스탠드업 코미디 부산 부산영화체험박물관 1층 다목적영상홀 부산 중구 대청로126번길 12 무료 공연, 후원사/상품 홍보 여부 상세 확인 필요 공개">
+              <td class="num">73</td>
+              <td><strong>디어데이</strong><span class="sub">무료 공연</span></td>
+              <td><strong>이제규</strong><span class="sub">부산 이제규 무료 스탠드업 코미디</span></td>
+              <td class="date">2026-05-17(일)</td>
+              <td>15:00~18:00</td>
+              <td>부산</td>
+              <td><span class="badge open">확인</span><strong class="venue">부산영화체험박물관 1층 다목적영상홀</strong><span class="sub">부산 중구 대청로126번길 12</span></td>
+              <td>무료 공연, 후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="전주" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 민경훈 민경훈 공연 전주 전주 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">74</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>민경훈</strong><span class="sub">민경훈 공연</span></td>
+              <td class="date">2026-05-17(일)</td>
+              <td>16:50</td>
+              <td>전주</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">전주 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="청주" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 바다 바다 공연 청주 청주 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">75</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>바다</strong><span class="sub">바다 공연</span></td>
+              <td class="date">2026-05-17(일)</td>
+              <td>16:50</td>
+              <td>청주</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">청주 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="강원" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 투맘쇼 [강원] 05/17 (일) 원주 투맘쇼 강원 호텔인터불고 원주 1층 강원특별자치도 원주시 동부순환로 200 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">76</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>투맘쇼</strong><span class="sub">[강원] 05/17 (일) 원주 투맘쇼</span></td>
+              <td class="date">2026-05-17(일)</td>
+              <td>11:00~14:10</td>
+              <td>강원</td>
+              <td><span class="badge open">확인</span><strong class="venue">호텔인터불고 원주 1층</strong><span class="sub">강원특별자치도 원주시 동부순환로 200</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="부산" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 솔지 [부산] 05/17 (일) 부산 솔지 부산 부산도시공사 아르피나 2층 부산 해운대구 해운대해변로 35 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">77</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>솔지</strong><span class="sub">[부산] 05/17 (일) 부산 솔지</span></td>
+              <td class="date">2026-05-17(일)</td>
+              <td>15:00~17:30</td>
+              <td>부산</td>
+              <td><span class="badge open">확인</span><strong class="venue">부산도시공사 아르피나 2층</strong><span class="sub">부산 해운대구 해운대해변로 35</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="글로벌AI" data-region="춘천" data-status="공개" data-venue="확인필요" data-search="글로벌ai교육협회 강연 제미나이 글로벌ai 제미나이 강연 춘천 상세 장소 미확인  후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">78</td>
+              <td><strong>글로벌AI</strong><span class="sub">강연</span></td>
+              <td><strong>제미나이</strong><span class="sub">글로벌AI 제미나이 강연</span></td>
+              <td class="date">2026-05-18(월)</td>
+              <td>10:00~13:00</td>
+              <td>춘천</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="디어데이" data-region="경기광주" data-status="공개" data-venue="확인" data-search="디어데이클래스 무료 특강 제미나이 경기광주 생활 속 ai 제미나이 활용법 경기광주 cgv 경기광주 3층 3관 경기 광주시 중앙로 89 무료 특강, 후원사/상품 홍보 여부 상세 확인 필요 공개">
+              <td class="num">79</td>
+              <td><strong>디어데이</strong><span class="sub">무료 특강</span></td>
+              <td><strong>제미나이</strong><span class="sub">경기광주 생활 속 AI 제미나이 활용법</span></td>
+              <td class="date">2026-05-18(월)</td>
+              <td>10:00~13:00</td>
+              <td>경기광주</td>
+              <td><span class="badge open">확인</span><strong class="venue">CGV 경기광주 3층 3관</strong><span class="sub">경기 광주시 중앙로 89</span></td>
+              <td>무료 특강, 후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="맘맘이야" data-region="천안" data-status="공개" data-venue="확인필요" data-search="맘맘이야 무료 체험수업 체험수업(품목 미공개) 공식 목록상 세부 품목 미공개 천안 상세 장소 미확인  홍보 여부 상세 확인 필요 공개 맘마미아 mommomia">
+              <td class="num">80</td>
+              <td><strong>맘맘이야</strong><span class="sub">무료 체험수업</span></td>
+              <td><strong>체험수업(품목 미공개)</strong><span class="sub">공식 목록상 세부 품목 미공개</span></td>
+              <td class="date">2026-05-18(월)</td>
+              <td><span class="empty">미확인</span></td>
+              <td>천안</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="맘맘이야" data-region="화성 동탄" data-status="공개" data-venue="확인필요" data-search="맘맘이야 무료 체험수업 체험수업(품목 미공개) 공식 목록상 세부 품목 미공개 화성 동탄 상세 장소 미확인  홍보 여부 상세 확인 필요 공개 맘마미아 mommomia">
+              <td class="num">81</td>
+              <td><strong>맘맘이야</strong><span class="sub">무료 체험수업</span></td>
+              <td><strong>체험수업(품목 미공개)</strong><span class="sub">공식 목록상 세부 품목 미공개</span></td>
+              <td class="date">2026-05-18(월)</td>
+              <td><span class="empty">미확인</span></td>
+              <td>화성 동탄</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="여수" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 허각 허각 공연 여수 여수 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">82</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>허각</strong><span class="sub">허각 공연</span></td>
+              <td class="date">2026-05-18(월)</td>
+              <td>18:50</td>
+              <td>여수</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">여수 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="인천" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 김동하 김동하 공연 인천 인천 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">83</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>김동하</strong><span class="sub">김동하 공연</span></td>
+              <td class="date">2026-05-18(월)</td>
+              <td>19:20</td>
+              <td>인천</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">인천 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="글로벌AI" data-region="포항" data-status="공개" data-venue="확인필요" data-search="글로벌ai교육협회 강연 제미나이 글로벌ai 제미나이 강연 포항 상세 장소 미확인  후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">84</td>
+              <td><strong>글로벌AI</strong><span class="sub">강연</span></td>
+              <td><strong>제미나이</strong><span class="sub">글로벌AI 제미나이 강연</span></td>
+              <td class="date">2026-05-19(화)</td>
+              <td>10:00~13:00</td>
+              <td>포항</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="맘맘이야" data-region="부산" data-status="공개" data-venue="확인" data-search="맘맘이야 무료 특강 분당강쌤 분당강쌤 무료 특강 부산 bexco 2전시장 125호 부산 해운대구 apec로 55 후원사(보험사) 홍보시간 포함 공개 맘마미아 mommomia">
+              <td class="num">85</td>
+              <td><strong>맘맘이야</strong><span class="sub">무료 특강</span></td>
+              <td><strong>분당강쌤</strong><span class="sub">분당강쌤 무료 특강</span></td>
+              <td class="date">2026-05-19(화)</td>
+              <td>10:20~13:30</td>
+              <td>부산</td>
+              <td><span class="badge open">확인</span><strong class="venue">BEXCO 2전시장 125호</strong><span class="sub">부산 해운대구 APEC로 55</span></td>
+              <td>후원사(보험사) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="광명" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 김동하 김동하 공연 광명 광명 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">86</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>김동하</strong><span class="sub">김동하 공연</span></td>
+              <td class="date">2026-05-19(화)</td>
+              <td>19:20</td>
+              <td>광명</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">광명 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="부산" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 강연 최민준 강사 최민준 강사 강연 부산 부산 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">87</td>
+              <td><strong>세바여</strong><span class="sub">강연</span></td>
+              <td><strong>최민준 강사</strong><span class="sub">최민준 강사 강연</span></td>
+              <td class="date">2026-05-19(화)</td>
+              <td>10:20</td>
+              <td>부산</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">부산 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="서울" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 김짠부 [서울] 05/19 (화) 노원 김짠부 서울 jw컨벤션웨딩홀 6층 서울 노원구 화랑로 325 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">88</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>김짠부</strong><span class="sub">[서울] 05/19 (화) 노원 김짠부</span></td>
+              <td class="date">2026-05-19(화)</td>
+              <td>10:20~13:30</td>
+              <td>서울</td>
+              <td><span class="badge open">확인</span><strong class="venue">JW컨벤션웨딩홀 6층</strong><span class="sub">서울 노원구 화랑로 325</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="여유톡" data-region="김포" data-status="공개" data-venue="확인" data-search="여유톡 무료 공연 지브리&amp;뮤지컬 ost 김포 지브리&amp;뮤지컬 ost 페스타 김포 김포 효원연수문화센터 지하 대강당 경기 김포시 사우동 243-9 무료 공연, 후원사/상품 홍보 여부 상세 확인 필요 공개">
+              <td class="num">89</td>
+              <td><strong>여유톡</strong><span class="sub">무료 공연</span></td>
+              <td><strong>지브리&amp;뮤지컬 OST</strong><span class="sub">김포 지브리&amp;뮤지컬 OST 페스타</span></td>
+              <td class="date">2026-05-19(화)</td>
+              <td>19:00~21:30</td>
+              <td>김포</td>
+              <td><span class="badge open">확인</span><strong class="venue">김포 효원연수문화센터 지하 대강당</strong><span class="sub">경기 김포시 사우동 243-9</span></td>
+              <td>무료 공연, 후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="글로벌AI" data-region="경주" data-status="공개" data-venue="확인필요" data-search="글로벌ai교육협회 강연 제미나이 글로벌ai 제미나이 강연 경주 상세 장소 미확인  후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">90</td>
+              <td><strong>글로벌AI</strong><span class="sub">강연</span></td>
+              <td><strong>제미나이</strong><span class="sub">글로벌AI 제미나이 강연</span></td>
+              <td class="date">2026-05-20(수)</td>
+              <td>10:00~13:00</td>
+              <td>경주</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="맘맘이야" data-region="동탄" data-status="공개" data-venue="확인필요" data-search="맘맘이야 무료 특강 효린파파 효린파파 무료 특강 동탄 상세 장소 미확인  후원사/상품 홍보 여부 상세 확인 필요 공개 맘마미아 mommomia">
+              <td class="num">91</td>
+              <td><strong>맘맘이야</strong><span class="sub">무료 특강</span></td>
+              <td><strong>효린파파</strong><span class="sub">효린파파 무료 특강</span></td>
+              <td class="date">2026-05-20(수)</td>
+              <td><span class="empty">미확인</span></td>
+              <td>동탄</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="안양" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 민경훈 민경훈 공연 안양 안양 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">92</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>민경훈</strong><span class="sub">민경훈 공연</span></td>
+              <td class="date">2026-05-20(수)</td>
+              <td>19:20</td>
+              <td>안양</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">안양 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="서울" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 김미경 [서울] 05/20 (수) 강서 김미경 서울 nsp홀 b1층 서울 강서구 마곡중앙1로 20 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">93</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>김미경</strong><span class="sub">[서울] 05/20 (수) 강서 김미경</span></td>
+              <td class="date">2026-05-20(수)</td>
+              <td>10:20~13:30</td>
+              <td>서울</td>
+              <td><span class="badge open">확인</span><strong class="venue">NSP홀 B1층</strong><span class="sub">서울 강서구 마곡중앙1로 20</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="여유톡" data-region="강동구" data-status="공개" data-venue="확인" data-search="여유톡 무료 공연 지브리&amp;뮤지컬 ost 강동구 지브리&amp;뮤지컬 ost 페스타 강동구 호원아트홀 지하1층 대극장 서울 강동구 성안로 30 무료 공연, 후원사/상품 홍보 여부 상세 확인 필요 공개">
+              <td class="num">94</td>
+              <td><strong>여유톡</strong><span class="sub">무료 공연</span></td>
+              <td><strong>지브리&amp;뮤지컬 OST</strong><span class="sub">강동구 지브리&amp;뮤지컬 OST 페스타</span></td>
+              <td class="date">2026-05-20(수)</td>
+              <td>19:00~21:30</td>
+              <td>강동구</td>
+              <td><span class="badge open">확인</span><strong class="venue">호원아트홀 지하1층 대극장</strong><span class="sub">서울 강동구 성안로 30</span></td>
+              <td>무료 공연, 후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="글로벌AI" data-region="영천" data-status="공개" data-venue="확인" data-search="글로벌ai교육협회 강연 제미나이 글로벌ai 제미나이 강연 영천 스타컨벤션웨딩 2층 스타홀 경북 영천시 완산로 110 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">95</td>
+              <td><strong>글로벌AI</strong><span class="sub">강연</span></td>
+              <td><strong>제미나이</strong><span class="sub">글로벌AI 제미나이 강연</span></td>
+              <td class="date">2026-05-21(목)</td>
+              <td>10:00~13:00</td>
+              <td>영천</td>
+              <td><span class="badge open">확인</span><strong class="venue">스타컨벤션웨딩 2층 스타홀</strong><span class="sub">경북 영천시 완산로 110</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="디어데이" data-region="안양" data-status="공개" data-venue="확인" data-search="디어데이클래스 무료 공연 이제규 안양 이제규 무료 스탠드업 코미디 안양 성결대학교 기념관 2층 홍대실홀 경기 안양시 만안구 성결대학로 53 무료 공연, 후원사/상품 홍보 여부 상세 확인 필요 공개">
+              <td class="num">96</td>
+              <td><strong>디어데이</strong><span class="sub">무료 공연</span></td>
+              <td><strong>이제규</strong><span class="sub">안양 이제규 무료 스탠드업 코미디</span></td>
+              <td class="date">2026-05-21(목)</td>
+              <td>19:20~22:20</td>
+              <td>안양</td>
+              <td><span class="badge open">확인</span><strong class="venue">성결대학교 기념관 2층 홍대실홀</strong><span class="sub">경기 안양시 만안구 성결대학로 53</span></td>
+              <td>무료 공연, 후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="맘맘이야" data-region="남양주" data-status="공개" data-venue="확인필요" data-search="맘맘이야 무료 체험수업 체험수업(품목 미공개) 공식 목록상 세부 품목 미공개 남양주 상세 장소 미확인  홍보 여부 상세 확인 필요 공개 맘마미아 mommomia">
+              <td class="num">97</td>
+              <td><strong>맘맘이야</strong><span class="sub">무료 체험수업</span></td>
+              <td><strong>체험수업(품목 미공개)</strong><span class="sub">공식 목록상 세부 품목 미공개</span></td>
+              <td class="date">2026-05-21(목)</td>
+              <td><span class="empty">미확인</span></td>
+              <td>남양주</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="맘맘이야" data-region="청주" data-status="공개" data-venue="확인필요" data-search="맘맘이야 무료 체험수업 체험수업(품목 미공개) 공식 목록상 세부 품목 미공개 청주 상세 장소 미확인  홍보 여부 상세 확인 필요 공개 맘마미아 mommomia">
+              <td class="num">98</td>
+              <td><strong>맘맘이야</strong><span class="sub">무료 체험수업</span></td>
+              <td><strong>체험수업(품목 미공개)</strong><span class="sub">공식 목록상 세부 품목 미공개</span></td>
+              <td class="date">2026-05-21(목)</td>
+              <td><span class="empty">미확인</span></td>
+              <td>청주</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="서초" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 테이 테이 공연 서초 서초 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">99</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>테이</strong><span class="sub">테이 공연</span></td>
+              <td class="date">2026-05-21(목)</td>
+              <td>19:20</td>
+              <td>서초</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">서초 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="인천" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 강연 최민준 강사 최민준 강사 강연 인천 인천 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">100</td>
+              <td><strong>세바여</strong><span class="sub">강연</span></td>
+              <td><strong>최민준 강사</strong><span class="sub">최민준 강사 강연</span></td>
+              <td class="date">2026-05-21(목)</td>
+              <td>10:20</td>
+              <td>인천</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">인천 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경기" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 제미나이 [경기] 05/21 (목) 분당 제미나이 경기 바른아트센터 b1층 경기 성남시 분당구 야탑로75번길 9 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">101</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>제미나이</strong><span class="sub">[경기] 05/21 (목) 분당 제미나이</span></td>
+              <td class="date">2026-05-21(목)</td>
+              <td>10:20~13:30</td>
+              <td>경기</td>
+              <td><span class="badge open">확인</span><strong class="venue">바른아트센터 B1층</strong><span class="sub">경기 성남시 분당구 야탑로75번길 9</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="서울" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 강형욱 [서울] 05/21 (목) 강남 강형욱 서울 스페이스쉐어 삼성역센터 b1층 서울 강남구 영동대로96길 20 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">102</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>강형욱</strong><span class="sub">[서울] 05/21 (목) 강남 강형욱</span></td>
+              <td class="date">2026-05-21(목)</td>
+              <td>10:20~13:30</td>
+              <td>서울</td>
+              <td><span class="badge open">확인</span><strong class="venue">스페이스쉐어 삼성역센터 B1층</strong><span class="sub">서울 강남구 영동대로96길 20</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="글로벌AI" data-region="부산" data-status="공개" data-venue="확인필요" data-search="글로벌ai교육협회 강연 제미나이 글로벌ai 제미나이 강연 부산 상세 장소 미확인  후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">103</td>
+              <td><strong>글로벌AI</strong><span class="sub">강연</span></td>
+              <td><strong>제미나이</strong><span class="sub">글로벌AI 제미나이 강연</span></td>
+              <td class="date">2026-05-22(금)</td>
+              <td>10:00~13:00</td>
+              <td>부산</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="맘맘이야" data-region="구미" data-status="공개" data-venue="확인필요" data-search="맘맘이야 무료 체험수업 체험수업(품목 미공개) 공식 목록상 세부 품목 미공개 구미 상세 장소 미확인  홍보 여부 상세 확인 필요 공개 맘마미아 mommomia">
+              <td class="num">104</td>
+              <td><strong>맘맘이야</strong><span class="sub">무료 체험수업</span></td>
+              <td><strong>체험수업(품목 미공개)</strong><span class="sub">공식 목록상 세부 품목 미공개</span></td>
+              <td class="date">2026-05-22(금)</td>
+              <td><span class="empty">미확인</span></td>
+              <td>구미</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="맘맘이야" data-region="일산" data-status="공개" data-venue="확인필요" data-search="맘맘이야 무료 체험수업 체험수업(품목 미공개) 공식 목록상 세부 품목 미공개 일산 상세 장소 미확인  홍보 여부 상세 확인 필요 공개 맘마미아 mommomia">
+              <td class="num">105</td>
+              <td><strong>맘맘이야</strong><span class="sub">무료 체험수업</span></td>
+              <td><strong>체험수업(품목 미공개)</strong><span class="sub">공식 목록상 세부 품목 미공개</span></td>
+              <td class="date">2026-05-22(금)</td>
+              <td><span class="empty">미확인</span></td>
+              <td>일산</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="용산" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 정준일 정준일 공연 용산 용산 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">106</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>정준일</strong><span class="sub">정준일 공연</span></td>
+              <td class="date">2026-05-22(금)</td>
+              <td>19:20</td>
+              <td>용산</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">용산 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="인천" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 바다 바다 공연 인천 인천 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">107</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>바다</strong><span class="sub">바다 공연</span></td>
+              <td class="date">2026-05-22(금)</td>
+              <td>19:20</td>
+              <td>인천</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">인천 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경기" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 김태균 [경기] 05/22 (금) 안산 김태균 경기 erica컨벤션센터 3층 경기 안산시 상록구 한양대학로 55 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">108</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>김태균</strong><span class="sub">[경기] 05/22 (금) 안산 김태균</span></td>
+              <td class="date">2026-05-22(금)</td>
+              <td>10:20~13:30</td>
+              <td>경기</td>
+              <td><span class="badge open">확인</span><strong class="venue">ERICA컨벤션센터 3층</strong><span class="sub">경기 안산시 상록구 한양대학로 55</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경기" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 제미나이 [경기] 05/22 (금) 하남 제미나이 경기 프로젝트 임팩트 2층 경기 하남시 미사강변한강로 135 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">109</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>제미나이</strong><span class="sub">[경기] 05/22 (금) 하남 제미나이</span></td>
+              <td class="date">2026-05-22(금)</td>
+              <td>10:20~13:30</td>
+              <td>경기</td>
+              <td><span class="badge open">확인</span><strong class="venue">프로젝트 임팩트 2층</strong><span class="sub">경기 하남시 미사강변한강로 135</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="글로벌AI" data-region="대구" data-status="공개" data-venue="확인필요" data-search="글로벌ai교육협회 강연 제미나이 글로벌ai 제미나이 강연 대구 상세 장소 미확인  후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">110</td>
+              <td><strong>글로벌AI</strong><span class="sub">강연</span></td>
+              <td><strong>제미나이</strong><span class="sub">글로벌AI 제미나이 강연</span></td>
+              <td class="date">2026-05-23(토)</td>
+              <td>10:00~13:00</td>
+              <td>대구</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="강남" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 민경훈 민경훈 공연 강남 강남 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">111</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>민경훈</strong><span class="sub">민경훈 공연</span></td>
+              <td class="date">2026-05-23(토)</td>
+              <td>16:50</td>
+              <td>강남</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">강남 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="대전" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 마크툽 마크툽 공연 대전 대전 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">112</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>마크툽</strong><span class="sub">마크툽 공연</span></td>
+              <td class="date">2026-05-23(토)</td>
+              <td>18:50</td>
+              <td>대전</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">대전 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경기" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 이호선 [경기] 05/23 (토) 일산 이호선 경기 킨텍스 제2전시장 3층 경기 고양시 일산서구 킨텍스로 217-59 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">113</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>이호선</strong><span class="sub">[경기] 05/23 (토) 일산 이호선</span></td>
+              <td class="date">2026-05-23(토)</td>
+              <td>11:00~14:10</td>
+              <td>경기</td>
+              <td><span class="badge open">확인</span><strong class="venue">킨텍스 제2전시장 3층</strong><span class="sub">경기 고양시 일산서구 킨텍스로 217-59</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="서울" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 김태균 [서울] 05/23 (토) 구로 김태균 서울 엘컨벤션 1층 서울 구로구 디지털로 300 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">114</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>김태균</strong><span class="sub">[서울] 05/23 (토) 구로 김태균</span></td>
+              <td class="date">2026-05-23(토)</td>
+              <td>16:00~19:10</td>
+              <td>서울</td>
+              <td><span class="badge open">확인</span><strong class="venue">엘컨벤션 1층</strong><span class="sub">서울 구로구 디지털로 300</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="인천" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 이대호 [인천] 05/23 (토) 송도 이대호 인천 송도컨벤시아 1층 인천 연수구 센트럴로 123 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">115</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>이대호</strong><span class="sub">[인천] 05/23 (토) 송도 이대호</span></td>
+              <td class="date">2026-05-23(토)</td>
+              <td>11:00~14:10</td>
+              <td>인천</td>
+              <td><span class="badge open">확인</span><strong class="venue">송도컨벤시아 1층</strong><span class="sub">인천 연수구 센트럴로 123</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="여유톡" data-region="대전" data-status="공개" data-venue="확인" data-search="여유톡 무료 공연 지브리&amp;뮤지컬 ost 대전 지브리&amp;뮤지컬 ost 페스타 대전 대전서구문화원 6층 아트홀 대전 서구 계룡로553번길 38 무료 공연, 후원사/상품 홍보 여부 상세 확인 필요 공개">
+              <td class="num">116</td>
+              <td><strong>여유톡</strong><span class="sub">무료 공연</span></td>
+              <td><strong>지브리&amp;뮤지컬 OST</strong><span class="sub">대전 지브리&amp;뮤지컬 OST 페스타</span></td>
+              <td class="date">2026-05-23(토)</td>
+              <td>13:00~15:30</td>
+              <td>대전</td>
+              <td><span class="badge open">확인</span><strong class="venue">대전서구문화원 6층 아트홀</strong><span class="sub">대전 서구 계룡로553번길 38</span></td>
+              <td>무료 공연, 후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="글로벌AI" data-region="청주" data-status="공개" data-venue="확인필요" data-search="글로벌ai교육협회 강연 제미나이 글로벌ai 제미나이 강연 청주 상세 장소 미확인  후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">117</td>
+              <td><strong>글로벌AI</strong><span class="sub">강연</span></td>
+              <td><strong>제미나이</strong><span class="sub">글로벌AI 제미나이 강연</span></td>
+              <td class="date">2026-05-24(일)</td>
+              <td>10:00~13:00</td>
+              <td>청주</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="광명" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 마크툽 마크툽 공연 광명 광명 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">118</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>마크툽</strong><span class="sub">마크툽 공연</span></td>
+              <td class="date">2026-05-24(일)</td>
+              <td>12:50</td>
+              <td>광명</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">광명 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="일산" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 마크툽 마크툽 공연 일산 일산 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">119</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>마크툽</strong><span class="sub">마크툽 공연</span></td>
+              <td class="date">2026-05-24(일)</td>
+              <td>18:50</td>
+              <td>일산</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">일산 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="화성" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 테이 테이 공연 화성 화성 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">120</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>테이</strong><span class="sub">테이 공연</span></td>
+              <td class="date">2026-05-24(일)</td>
+              <td>18:50</td>
+              <td>화성</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">화성 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="글로벌AI" data-region="광주" data-status="공개" data-venue="확인필요" data-search="글로벌ai교육협회 강연 제미나이 글로벌ai 제미나이 강연 광주 상세 장소 미확인  후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">121</td>
+              <td><strong>글로벌AI</strong><span class="sub">강연</span></td>
+              <td><strong>제미나이</strong><span class="sub">글로벌AI 제미나이 강연</span></td>
+              <td class="date">2026-05-25(월)</td>
+              <td>10:00~13:00</td>
+              <td>광주</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="글로벌AI" data-region="대전" data-status="공개" data-venue="확인필요" data-search="글로벌ai교육협회 강연 제미나이 글로벌ai 제미나이 강연 대전 상세 장소 미확인  후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">122</td>
+              <td><strong>글로벌AI</strong><span class="sub">강연</span></td>
+              <td><strong>제미나이</strong><span class="sub">글로벌AI 제미나이 강연</span></td>
+              <td class="date">2026-05-25(월)</td>
+              <td>10:00~13:00</td>
+              <td>대전</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="수원" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 인순이 인순이 공연 수원 수원 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">123</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>인순이</strong><span class="sub">인순이 공연</span></td>
+              <td class="date">2026-05-25(월)</td>
+              <td>16:50</td>
+              <td>수원</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">수원 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="인천" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 민경훈 민경훈 공연 인천 인천 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">124</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>민경훈</strong><span class="sub">민경훈 공연</span></td>
+              <td class="date">2026-05-25(월)</td>
+              <td>16:50</td>
+              <td>인천</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">인천 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="맘맘이야" data-region="김포" data-status="공개" data-venue="확인필요" data-search="맘맘이야 무료 체험수업 체험수업(품목 미공개) 공식 목록상 세부 품목 미공개 김포 상세 장소 미확인  홍보 여부 상세 확인 필요 공개 맘마미아 mommomia">
+              <td class="num">125</td>
+              <td><strong>맘맘이야</strong><span class="sub">무료 체험수업</span></td>
+              <td><strong>체험수업(품목 미공개)</strong><span class="sub">공식 목록상 세부 품목 미공개</span></td>
+              <td class="date">2026-05-26(화)</td>
+              <td><span class="empty">미확인</span></td>
+              <td>김포</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="맘맘이야" data-region="수원" data-status="공개" data-venue="확인필요" data-search="맘맘이야 무료 체험수업 체험수업(품목 미공개) 공식 목록상 세부 품목 미공개 수원 상세 장소 미확인  홍보 여부 상세 확인 필요 공개 맘마미아 mommomia">
+              <td class="num">126</td>
+              <td><strong>맘맘이야</strong><span class="sub">무료 체험수업</span></td>
+              <td><strong>체험수업(품목 미공개)</strong><span class="sub">공식 목록상 세부 품목 미공개</span></td>
+              <td class="date">2026-05-26(화)</td>
+              <td><span class="empty">미확인</span></td>
+              <td>수원</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="광주" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 바다 바다 공연 광주 광주 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">127</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>바다</strong><span class="sub">바다 공연</span></td>
+              <td class="date">2026-05-26(화)</td>
+              <td>19:20</td>
+              <td>광주</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">광주 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="울산" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 허각 허각 공연 울산 울산 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">128</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>허각</strong><span class="sub">허각 공연</span></td>
+              <td class="date">2026-05-26(화)</td>
+              <td>19:20</td>
+              <td>울산</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">울산 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="맘맘이야" data-region="울산" data-status="공개" data-venue="확인필요" data-search="맘맘이야 무료 특강 효린파파 효린파파 무료 특강 울산 상세 장소 미확인  후원사/상품 홍보 여부 상세 확인 필요 공개 맘마미아 mommomia">
+              <td class="num">129</td>
+              <td><strong>맘맘이야</strong><span class="sub">무료 특강</span></td>
+              <td><strong>효린파파</strong><span class="sub">효린파파 무료 특강</span></td>
+              <td class="date">2026-05-27(수)</td>
+              <td><span class="empty">미확인</span></td>
+              <td>울산</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="안산" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 허각 허각 공연 안산 안산 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">130</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>허각</strong><span class="sub">허각 공연</span></td>
+              <td class="date">2026-05-27(수)</td>
+              <td>19:20</td>
+              <td>안산</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">안산 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경기" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 김미경 [경기] 05/27 (수) 용인 김미경 경기 ict밸리컨벤션 b1층 경기 용인시 기흥구 기흥로 58-1 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">131</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>김미경</strong><span class="sub">[경기] 05/27 (수) 용인 김미경</span></td>
+              <td class="date">2026-05-27(수)</td>
+              <td>10:20~13:30</td>
+              <td>경기</td>
+              <td><span class="badge open">확인</span><strong class="venue">ICT밸리컨벤션 B1층</strong><span class="sub">경기 용인시 기흥구 기흥로 58-1</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경남" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 챗gpt [경남] 05/27 (수) 김해 챗gpt 경남 jw웨딩컨벤션센터 2층 경남 김해시 김해대로 2520 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">132</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>챗GPT</strong><span class="sub">[경남] 05/27 (수) 김해 챗GPT</span></td>
+              <td class="date">2026-05-27(수)</td>
+              <td>10:20~13:30</td>
+              <td>경남</td>
+              <td><span class="badge open">확인</span><strong class="venue">JW웨딩컨벤션센터 2층</strong><span class="sub">경남 김해시 김해대로 2520</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="여유톡" data-region="청주" data-status="공개" data-venue="확인" data-search="여유톡 무료 강연 김창옥 청주 김창옥의 힐링콘서트 청주 충북대학교 개신문화관 대공연장 충북 청주시 서원구 충대로 1 무료 강연, 후원사/상품 홍보 여부 상세 확인 필요 공개">
+              <td class="num">133</td>
+              <td><strong>여유톡</strong><span class="sub">무료 강연</span></td>
+              <td><strong>김창옥</strong><span class="sub">청주 김창옥의 힐링콘서트</span></td>
+              <td class="date">2026-05-27(수)</td>
+              <td>10:20~13:20</td>
+              <td>청주</td>
+              <td><span class="badge open">확인</span><strong class="venue">충북대학교 개신문화관 대공연장</strong><span class="sub">충북 청주시 서원구 충대로 1</span></td>
+              <td>무료 강연, 후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="맘맘이야" data-region="대구" data-status="공개" data-venue="확인필요" data-search="맘맘이야 무료 특강 분당강쌤 분당강쌤 무료 특강 대구 상세 장소 미확인  후원사/상품 홍보 여부 상세 확인 필요 공개 맘마미아 mommomia">
+              <td class="num">134</td>
+              <td><strong>맘맘이야</strong><span class="sub">무료 특강</span></td>
+              <td><strong>분당강쌤</strong><span class="sub">분당강쌤 무료 특강</span></td>
+              <td class="date">2026-05-28(목)</td>
+              <td><span class="empty">미확인</span></td>
+              <td>대구</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="의정부" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 허각 허각 공연 의정부 의정부 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">135</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>허각</strong><span class="sub">허각 공연</span></td>
+              <td class="date">2026-05-28(목)</td>
+              <td>19:20</td>
+              <td>의정부</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">의정부 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="일산" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 바다 바다 공연 일산 일산 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">136</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>바다</strong><span class="sub">바다 공연</span></td>
+              <td class="date">2026-05-28(목)</td>
+              <td>19:20</td>
+              <td>일산</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">일산 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경기" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 챗gpt [경기] 05/28 (목) 의정부 챗gpt 경기 플로렌스파티하우스 의정부점 7층 경기 의정부시 부용로 105 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">137</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>챗GPT</strong><span class="sub">[경기] 05/28 (목) 의정부 챗GPT</span></td>
+              <td class="date">2026-05-28(목)</td>
+              <td>10:20~13:30</td>
+              <td>경기</td>
+              <td><span class="badge open">확인</span><strong class="venue">플로렌스파티하우스 의정부점 7층</strong><span class="sub">경기 의정부시 부용로 105</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="여유톡" data-region="인천" data-status="공개" data-venue="확인" data-search="여유톡 무료 강연 김창옥 인천 김창옥의 힐링콘서트 인천 그랜드 오스티엄 cmcc홀 인천 미추홀구 매소홀로 618 주경기장4f 무료 강연, 후원사/상품 홍보 여부 상세 확인 필요 공개">
+              <td class="num">138</td>
+              <td><strong>여유톡</strong><span class="sub">무료 강연</span></td>
+              <td><strong>김창옥</strong><span class="sub">인천 김창옥의 힐링콘서트</span></td>
+              <td class="date">2026-05-28(목)</td>
+              <td>10:20~13:20</td>
+              <td>인천</td>
+              <td><span class="badge open">확인</span><strong class="venue">그랜드 오스티엄 CMCC홀</strong><span class="sub">인천 미추홀구 매소홀로 618 주경기장4F</span></td>
+              <td>무료 강연, 후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="맘맘이야" data-region="서초" data-status="공개" data-venue="확인필요" data-search="맘맘이야 무료 특강 양소영 양소영 무료 특강 서초 상세 장소 미확인  후원사/상품 홍보 여부 상세 확인 필요 공개 맘마미아 mommomia">
+              <td class="num">139</td>
+              <td><strong>맘맘이야</strong><span class="sub">무료 특강</span></td>
+              <td><strong>양소영</strong><span class="sub">양소영 무료 특강</span></td>
+              <td class="date">2026-05-29(금)</td>
+              <td><span class="empty">미확인</span></td>
+              <td>서초</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="수원" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 민경훈 민경훈 공연 수원 수원 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">140</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>민경훈</strong><span class="sub">민경훈 공연</span></td>
+              <td class="date">2026-05-29(금)</td>
+              <td>19:20</td>
+              <td>수원</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">수원 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="충남" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 김학렬 [충남] 05/29 (금) 천안 김학렬 충남 라마다앙코르바이윈덤 천안 20층 충남 천안시 서북구 차돌들길 12 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">141</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>김학렬</strong><span class="sub">[충남] 05/29 (금) 천안 김학렬</span></td>
+              <td class="date">2026-05-29(금)</td>
+              <td>10:20~13:30</td>
+              <td>충남</td>
+              <td><span class="badge open">확인</span><strong class="venue">라마다앙코르바이윈덤 천안 20층</strong><span class="sub">충남 천안시 서북구 차돌들길 12</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="충북" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 강형욱 [충북] 05/29 (금) 청주 강형욱 충북 글로스터호텔 청주 3층 충북 청주시 흥덕구 대농로 47-2 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">142</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>강형욱</strong><span class="sub">[충북] 05/29 (금) 청주 강형욱</span></td>
+              <td class="date">2026-05-29(금)</td>
+              <td>10:20~13:30</td>
+              <td>충북</td>
+              <td><span class="badge open">확인</span><strong class="venue">글로스터호텔 청주 3층</strong><span class="sub">충북 청주시 흥덕구 대농로 47-2</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="여유톡" data-region="울산" data-status="공개" data-venue="확인" data-search="여유톡 무료 공연 지브리&amp;뮤지컬 ost 울산 지브리&amp;뮤지컬 ost 페스타 울산 j아트홀 7층 울산 중구 번영로 470 무료 공연, 후원사/상품 홍보 여부 상세 확인 필요 공개">
+              <td class="num">143</td>
+              <td><strong>여유톡</strong><span class="sub">무료 공연</span></td>
+              <td><strong>지브리&amp;뮤지컬 OST</strong><span class="sub">울산 지브리&amp;뮤지컬 OST 페스타</span></td>
+              <td class="date">2026-05-29(금)</td>
+              <td>18:40~21:10</td>
+              <td>울산</td>
+              <td><span class="badge open">확인</span><strong class="venue">J아트홀 7층</strong><span class="sub">울산 중구 번영로 470</span></td>
+              <td>무료 공연, 후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="강남" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 마크툽 마크툽 공연 강남 강남 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">144</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>마크툽</strong><span class="sub">마크툽 공연</span></td>
+              <td class="date">2026-05-30(토)</td>
+              <td>18:50</td>
+              <td>강남</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">강남 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="평택" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 마크툽 마크툽 공연 평택 평택 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">145</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>마크툽</strong><span class="sub">마크툽 공연</span></td>
+              <td class="date">2026-05-30(토)</td>
+              <td>13:50</td>
+              <td>평택</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">평택 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="대구" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 김미경 [대구] 05/30 (토) 대구 김미경 대구 exco 2층 대구 북구 엑스코로 10 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">146</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>김미경</strong><span class="sub">[대구] 05/30 (토) 대구 김미경</span></td>
+              <td class="date">2026-05-30(토)</td>
+              <td>11:00~14:10</td>
+              <td>대구</td>
+              <td><span class="badge open">확인</span><strong class="venue">EXCO 2층</strong><span class="sub">대구 북구 엑스코로 10</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="부산" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 투맘쇼 [부산] 05/30 (토) 부산 투맘쇼 부산 부산적십자회관 1층 부산 부산진구 동성로 144 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">147</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>투맘쇼</strong><span class="sub">[부산] 05/30 (토) 부산 투맘쇼</span></td>
+              <td class="date">2026-05-30(토)</td>
+              <td>11:00~14:10</td>
+              <td>부산</td>
+              <td><span class="badge open">확인</span><strong class="venue">부산적십자회관 1층</strong><span class="sub">부산 부산진구 동성로 144</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="여유톡" data-region="부산" data-status="공개" data-venue="확인" data-search="여유톡 무료 공연 지브리&amp;뮤지컬 ost 부산 지브리&amp;뮤지컬 ost 페스타 부산 부산디자인진흥원 6층 이벤트홀 부산 해운대구 센텀동로 57 무료 공연, 후원사/상품 홍보 여부 상세 확인 필요 공개">
+              <td class="num">148</td>
+              <td><strong>여유톡</strong><span class="sub">무료 공연</span></td>
+              <td><strong>지브리&amp;뮤지컬 OST</strong><span class="sub">부산 지브리&amp;뮤지컬 OST 페스타</span></td>
+              <td class="date">2026-05-30(토)</td>
+              <td>13:00~15:30</td>
+              <td>부산</td>
+              <td><span class="badge open">확인</span><strong class="venue">부산디자인진흥원 6층 이벤트홀</strong><span class="sub">부산 해운대구 센텀동로 57</span></td>
+              <td>무료 공연, 후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="광명" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 테이 테이 공연 광명 광명 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">149</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>테이</strong><span class="sub">테이 공연</span></td>
+              <td class="date">2026-05-31(일)</td>
+              <td>16:50</td>
+              <td>광명</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">광명 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="부산" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 정준일 정준일 공연 부산 부산 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">150</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>정준일</strong><span class="sub">정준일 공연</span></td>
+              <td class="date">2026-05-31(일)</td>
+              <td>16:50</td>
+              <td>부산</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">부산 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경기" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 솔지 [경기] 05/31 (일) 수원 솔지 경기 노보텔 앰배서더 수원 2층 경기 수원시 팔달구 덕영대로 902 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">151</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>솔지</strong><span class="sub">[경기] 05/31 (일) 수원 솔지</span></td>
+              <td class="date">2026-05-31(일)</td>
+              <td>15:00~17:30</td>
+              <td>경기</td>
+              <td><span class="badge open">확인</span><strong class="venue">노보텔 앰배서더 수원 2층</strong><span class="sub">경기 수원시 팔달구 덕영대로 902</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="구미" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 조째즈 조째즈 공연 구미 구미 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">152</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>조째즈</strong><span class="sub">조째즈 공연</span></td>
+              <td class="date">2026-06-01(월)</td>
+              <td>19:20</td>
+              <td>구미</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">구미 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="맘맘이야" data-region="서울 중구" data-status="공개" data-venue="확인필요" data-search="맘맘이야 무료 체험수업 막걸리 막걸리 체험수업 서울 중구 상세 장소 미확인  홍보 여부 상세 확인 필요 공개 맘마미아 mommomia">
+              <td class="num">153</td>
+              <td><strong>맘맘이야</strong><span class="sub">무료 체험수업</span></td>
+              <td><strong>막걸리</strong><span class="sub">막걸리 체험수업</span></td>
+              <td class="date">2026-06-02(화)</td>
+              <td><span class="empty">미확인</span></td>
+              <td>서울 중구</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="수원" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 강연 최민준 강사 최민준 강사 강연 수원 수원 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">154</td>
+              <td><strong>세바여</strong><span class="sub">강연</span></td>
+              <td><strong>최민준 강사</strong><span class="sub">최민준 강사 강연</span></td>
+              <td class="date">2026-06-02(화)</td>
+              <td>10:20</td>
+              <td>수원</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">수원 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="평택" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 바다 바다 공연 평택 평택 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">155</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>바다</strong><span class="sub">바다 공연</span></td>
+              <td class="date">2026-06-02(화)</td>
+              <td>19:20</td>
+              <td>평택</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">평택 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="서울" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 제미나이 [서울] 06/02 (화) 송파 제미나이 서울 가든파이브툴 10층 서울 송파구 충민로 10 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">156</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>제미나이</strong><span class="sub">[서울] 06/02 (화) 송파 제미나이</span></td>
+              <td class="date">2026-06-02(화)</td>
+              <td>10:20~13:30</td>
+              <td>서울</td>
+              <td><span class="badge open">확인</span><strong class="venue">가든파이브툴 10층</strong><span class="sub">서울 송파구 충민로 10</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="김포" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 먼데이키즈 먼데이키즈 공연 김포 김포 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">157</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>먼데이키즈</strong><span class="sub">먼데이키즈 공연</span></td>
+              <td class="date">2026-06-03(수)</td>
+              <td>19:20</td>
+              <td>김포</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">김포 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="포항" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 민경훈 민경훈 공연 포항 포항 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">158</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>민경훈</strong><span class="sub">민경훈 공연</span></td>
+              <td class="date">2026-06-03(수)</td>
+              <td>19:20</td>
+              <td>포항</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">포항 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="맘맘이야" data-region="영등포구" data-status="공개" data-venue="확인필요" data-search="맘맘이야 무료 체험수업 막걸리 막걸리 체험수업 영등포구 상세 장소 미확인  홍보 여부 상세 확인 필요 공개 맘마미아 mommomia">
+              <td class="num">159</td>
+              <td><strong>맘맘이야</strong><span class="sub">무료 체험수업</span></td>
+              <td><strong>막걸리</strong><span class="sub">막걸리 체험수업</span></td>
+              <td class="date">2026-06-04(목)</td>
+              <td><span class="empty">미확인</span></td>
+              <td>영등포구</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="화성" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 김동하 김동하 공연 화성 화성 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">160</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>김동하</strong><span class="sub">김동하 공연</span></td>
+              <td class="date">2026-06-04(목)</td>
+              <td>19:20</td>
+              <td>화성</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">화성 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경기" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 챗gpt [경기] 06/04 (목) 김포 챗gpt 경기 엔젤스데이 12층 경기 김포시 김포한강4로 113 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">161</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>챗GPT</strong><span class="sub">[경기] 06/04 (목) 김포 챗GPT</span></td>
+              <td class="date">2026-06-04(목)</td>
+              <td>10:20~13:30</td>
+              <td>경기</td>
+              <td><span class="badge open">확인</span><strong class="venue">엔젤스데이 12층</strong><span class="sub">경기 김포시 김포한강4로 113</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="맘맘이야" data-region="안산" data-status="공개" data-venue="확인필요" data-search="맘맘이야 무료 체험수업 도마 도마 체험수업 안산 상세 장소 미확인  홍보 여부 상세 확인 필요 공개 맘마미아 mommomia">
+              <td class="num">162</td>
+              <td><strong>맘맘이야</strong><span class="sub">무료 체험수업</span></td>
+              <td><strong>도마</strong><span class="sub">도마 체험수업</span></td>
+              <td class="date">2026-06-05(금)</td>
+              <td><span class="empty">미확인</span></td>
+              <td>안산</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="남원" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 먼데이키즈 먼데이키즈 공연 남원 남원 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">163</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>먼데이키즈</strong><span class="sub">먼데이키즈 공연</span></td>
+              <td class="date">2026-06-05(금)</td>
+              <td>19:20</td>
+              <td>남원</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">남원 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="청주" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 민경훈 민경훈 공연 청주 청주 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">164</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>민경훈</strong><span class="sub">민경훈 공연</span></td>
+              <td class="date">2026-06-05(금)</td>
+              <td>19:20</td>
+              <td>청주</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">청주 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경기" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 챗gpt [경기] 06/05 (금) 파주 챗gpt 경기 a7 스튜디오 7층 경기 파주시 초롱꽃로 139 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">165</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>챗GPT</strong><span class="sub">[경기] 06/05 (금) 파주 챗GPT</span></td>
+              <td class="date">2026-06-05(금)</td>
+              <td>10:20~13:30</td>
+              <td>경기</td>
+              <td><span class="badge open">확인</span><strong class="venue">A7 스튜디오 7층</strong><span class="sub">경기 파주시 초롱꽃로 139</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="전주" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 바다 바다 공연 전주 전주 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">166</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>바다</strong><span class="sub">바다 공연</span></td>
+              <td class="date">2026-06-06(토)</td>
+              <td>16:50</td>
+              <td>전주</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">전주 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경기" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 김미경 [경기] 06/06 (토) 경기광주 김미경 경기 서울장신대학교해성홀 1층 경기 광주시 경안로 145 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">167</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>김미경</strong><span class="sub">[경기] 06/06 (토) 경기광주 김미경</span></td>
+              <td class="date">2026-06-06(토)</td>
+              <td>11:00~14:10</td>
+              <td>경기</td>
+              <td><span class="badge open">확인</span><strong class="venue">서울장신대학교해성홀 1층</strong><span class="sub">경기 광주시 경안로 145</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="서울" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 제미나이 [서울] 06/06 (토) 중랑 제미나이 서울 서일대학교호천관 7층 서울 중랑구 용마산로90길 28-6 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">168</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>제미나이</strong><span class="sub">[서울] 06/06 (토) 중랑 제미나이</span></td>
+              <td class="date">2026-06-06(토)</td>
+              <td>11:00~14:10</td>
+              <td>서울</td>
+              <td><span class="badge open">확인</span><strong class="venue">서일대학교호천관 7층</strong><span class="sub">서울 중랑구 용마산로90길 28-6</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="원주" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 민경훈 민경훈 공연 원주 원주 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">169</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>민경훈</strong><span class="sub">민경훈 공연</span></td>
+              <td class="date">2026-06-07(일)</td>
+              <td>16:50</td>
+              <td>원주</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">원주 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경남" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 신승태 [경남] 06/07 (일) 창원 신승태 경남 창원컨벤션센터 6층 경남 창원시 성산구 원이대로 362 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">170</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>신승태</strong><span class="sub">[경남] 06/07 (일) 창원 신승태</span></td>
+              <td class="date">2026-06-07(일)</td>
+              <td>15:00~17:30</td>
+              <td>경남</td>
+              <td><span class="badge open">확인</span><strong class="venue">창원컨벤션센터 6층</strong><span class="sub">경남 창원시 성산구 원이대로 362</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="서울" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 솔지 [서울] 06/07 (일) 서초 솔지 서울 흰물결 화이트홀 b1층 서울 서초구 반포대로 150 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">171</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>솔지</strong><span class="sub">[서울] 06/07 (일) 서초 솔지</span></td>
+              <td class="date">2026-06-07(일)</td>
+              <td>15:00~17:30</td>
+              <td>서울</td>
+              <td><span class="badge open">확인</span><strong class="venue">흰물결 화이트홀 B1층</strong><span class="sub">서울 서초구 반포대로 150</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경남" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 챗gpt [경남] 06/09 (화) 양산 챗gpt 경남 m컨벤션 웨딩 8층 경남 양산시 중부로 2 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">172</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>챗GPT</strong><span class="sub">[경남] 06/09 (화) 양산 챗GPT</span></td>
+              <td class="date">2026-06-09(화)</td>
+              <td>10:20~13:30</td>
+              <td>경남</td>
+              <td><span class="badge open">확인</span><strong class="venue">M컨벤션 웨딩 8층</strong><span class="sub">경남 양산시 중부로 2</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="광주" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 민경훈 민경훈 공연 광주 광주 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">173</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>민경훈</strong><span class="sub">민경훈 공연</span></td>
+              <td class="date">2026-06-10(수)</td>
+              <td>19:20</td>
+              <td>광주</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">광주 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경북" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 제미나이 [경북] 06/10 (수) 구미 제미나이 경북 구미코 3층 경북 구미시 산동읍 첨단기업1로 49 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">174</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>제미나이</strong><span class="sub">[경북] 06/10 (수) 구미 제미나이</span></td>
+              <td class="date">2026-06-10(수)</td>
+              <td>10:20~13:30</td>
+              <td>경북</td>
+              <td><span class="badge open">확인</span><strong class="venue">구미코 3층</strong><span class="sub">경북 구미시 산동읍 첨단기업1로 49</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="울산" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 김미경 [울산] 06/10 (수) 울산 김미경 울산 울산상공회의소 7층 울산 남구 돋질로 97 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">175</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>김미경</strong><span class="sub">[울산] 06/10 (수) 울산 김미경</span></td>
+              <td class="date">2026-06-10(수)</td>
+              <td>10:20~13:30</td>
+              <td>울산</td>
+              <td><span class="badge open">확인</span><strong class="venue">울산상공회의소 7층</strong><span class="sub">울산 남구 돋질로 97</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="강릉" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 김동하 김동하 공연 강릉 강릉 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">176</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>김동하</strong><span class="sub">김동하 공연</span></td>
+              <td class="date">2026-06-11(목)</td>
+              <td>19:20</td>
+              <td>강릉</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">강릉 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경기" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 제미나이 [경기] 06/11 (목) 광교 제미나이 경기 수원컨벤션센터 3층 경기 수원시 영통구 광교중앙로 140 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">177</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>제미나이</strong><span class="sub">[경기] 06/11 (목) 광교 제미나이</span></td>
+              <td class="date">2026-06-11(목)</td>
+              <td>10:20~13:30</td>
+              <td>경기</td>
+              <td><span class="badge open">확인</span><strong class="venue">수원컨벤션센터 3층</strong><span class="sub">경기 수원시 영통구 광교중앙로 140</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="서울" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 제미나이 [서울] 06/11 (목) 동작 제미나이 서울 플로렌스 보라매점 29층 서울 동작구 보라매로5길 15 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">178</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>제미나이</strong><span class="sub">[서울] 06/11 (목) 동작 제미나이</span></td>
+              <td class="date">2026-06-11(목)</td>
+              <td>10:20~13:30</td>
+              <td>서울</td>
+              <td><span class="badge open">확인</span><strong class="venue">플로렌스 보라매점 29층</strong><span class="sub">서울 동작구 보라매로5길 15</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경기" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 제미나이 [경기] 06/12 (금) 안양 제미나이 경기 파티엘하우스 39층 경기 안양시 동안구 시민대로 230 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">179</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>제미나이</strong><span class="sub">[경기] 06/12 (금) 안양 제미나이</span></td>
+              <td class="date">2026-06-12(금)</td>
+              <td>10:20~13:30</td>
+              <td>경기</td>
+              <td><span class="badge open">확인</span><strong class="venue">파티엘하우스 39층</strong><span class="sub">경기 안양시 동안구 시민대로 230</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="부산" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 김영철 [부산] 06/13 (토) 부산 김영철 부산 부산항국제전시컨벤션센터 5층 부산 동구 충장대로 206 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">180</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>김영철</strong><span class="sub">[부산] 06/13 (토) 부산 김영철</span></td>
+              <td class="date">2026-06-13(토)</td>
+              <td>11:00~14:10</td>
+              <td>부산</td>
+              <td><span class="badge open">확인</span><strong class="venue">부산항국제전시컨벤션센터 5층</strong><span class="sub">부산 동구 충장대로 206</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="대전" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 솔지 [대전] 06/14 (일) 대전 솔지 대전 kt 대전인재개발원제1연수관 1층 대전 서구 갈마로 160 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">181</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>솔지</strong><span class="sub">[대전] 06/14 (일) 대전 솔지</span></td>
+              <td class="date">2026-06-14(일)</td>
+              <td>15:00~17:30</td>
+              <td>대전</td>
+              <td><span class="badge open">확인</span><strong class="venue">KT 대전인재개발원제1연수관 1층</strong><span class="sub">대전 서구 갈마로 160</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="인천" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 김태균 [인천] 06/14 (일) 송도 김태균 인천 송도컨벤시아 2층 인천 연수구 센트럴로 123 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">182</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>김태균</strong><span class="sub">[인천] 06/14 (일) 송도 김태균</span></td>
+              <td class="date">2026-06-14(일)</td>
+              <td>11:00~14:10</td>
+              <td>인천</td>
+              <td><span class="badge open">확인</span><strong class="venue">송도컨벤시아 2층</strong><span class="sub">인천 연수구 센트럴로 123</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="서울" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 김미경 [서울] 06/16 (화) 영등포 김미경 서울 웨딩그룹위더스 영등포 3층 서울 영등포구 영중로 55 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">183</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>김미경</strong><span class="sub">[서울] 06/16 (화) 영등포 김미경</span></td>
+              <td class="date">2026-06-16(화)</td>
+              <td>10:20~13:30</td>
+              <td>서울</td>
+              <td><span class="badge open">확인</span><strong class="venue">웨딩그룹위더스 영등포 3층</strong><span class="sub">서울 영등포구 영중로 55</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="맘맘이야" data-region="부산" data-status="공개" data-venue="확인필요" data-search="맘맘이야 무료 특강 효린파파 효린파파 무료 특강 부산 상세 장소 미확인  후원사/상품 홍보 여부 상세 확인 필요 공개 맘마미아 mommomia">
+              <td class="num">184</td>
+              <td><strong>맘맘이야</strong><span class="sub">무료 특강</span></td>
+              <td><strong>효린파파</strong><span class="sub">효린파파 무료 특강</span></td>
+              <td class="date">2026-06-17(수)</td>
+              <td><span class="empty">미확인</span></td>
+              <td>부산</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="김포" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 김동하 김동하 공연 김포 김포 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">185</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>김동하</strong><span class="sub">김동하 공연</span></td>
+              <td class="date">2026-06-18(목)</td>
+              <td>19:20</td>
+              <td>김포</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">김포 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="서울" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 강형욱 [서울] 06/18 (목) 서대문 강형욱 서울 코지모임공간 신촌점 14층 서울 서대문구 연세로 8-1 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">186</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>강형욱</strong><span class="sub">[서울] 06/18 (목) 서대문 강형욱</span></td>
+              <td class="date">2026-06-18(목)</td>
+              <td>10:20~13:30</td>
+              <td>서울</td>
+              <td><span class="badge open">확인</span><strong class="venue">코지모임공간 신촌점 14층</strong><span class="sub">서울 서대문구 연세로 8-1</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경기" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 강형욱 [경기] 06/19 (금) 분당 강형욱 경기 성음아트센터 4층 경기 성남시 분당구 판교역로14번길 15 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">187</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>강형욱</strong><span class="sub">[경기] 06/19 (금) 분당 강형욱</span></td>
+              <td class="date">2026-06-19(금)</td>
+              <td>10:20~13:30</td>
+              <td>경기</td>
+              <td><span class="badge open">확인</span><strong class="venue">성음아트센터 4층</strong><span class="sub">경기 성남시 분당구 판교역로14번길 15</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경기" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 김짠부 [경기] 06/19 (금) 부천 김짠부 경기 고려호텔 3층 경기 부천시 원미구 길주로 66 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">188</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>김짠부</strong><span class="sub">[경기] 06/19 (금) 부천 김짠부</span></td>
+              <td class="date">2026-06-19(금)</td>
+              <td>10:20~13:30</td>
+              <td>경기</td>
+              <td><span class="badge open">확인</span><strong class="venue">고려호텔 3층</strong><span class="sub">경기 부천시 원미구 길주로 66</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경기" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 투맘쇼 [경기] 06/20 (토) 안산 투맘쇼 경기 erica컨벤션센터 3층 경기 안산시 상록구 한양대학로 55 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">189</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>투맘쇼</strong><span class="sub">[경기] 06/20 (토) 안산 투맘쇼</span></td>
+              <td class="date">2026-06-20(토)</td>
+              <td>11:00~14:10</td>
+              <td>경기</td>
+              <td><span class="badge open">확인</span><strong class="venue">ERICA컨벤션센터 3층</strong><span class="sub">경기 안산시 상록구 한양대학로 55</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="서울" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 김미경 [서울] 06/20 (토) 성북 김미경 서울 동덕여자대학교백주년기념관 1층 서울 성북구 화랑로13길 59 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">190</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>김미경</strong><span class="sub">[서울] 06/20 (토) 성북 김미경</span></td>
+              <td class="date">2026-06-20(토)</td>
+              <td>11:00~14:10</td>
+              <td>서울</td>
+              <td><span class="badge open">확인</span><strong class="venue">동덕여자대학교백주년기념관 1층</strong><span class="sub">서울 성북구 화랑로13길 59</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="수원" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 마크툽 마크툽 공연 수원 수원 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">191</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>마크툽</strong><span class="sub">마크툽 공연</span></td>
+              <td class="date">2026-06-21(일)</td>
+              <td>18:50</td>
+              <td>수원</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">수원 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="청주" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 마크툽 마크툽 공연 청주 청주 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">192</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>마크툽</strong><span class="sub">마크툽 공연</span></td>
+              <td class="date">2026-06-21(일)</td>
+              <td>12:50</td>
+              <td>청주</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">청주 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경기" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 신승태 [경기] 06/21 (일) 일산 신승태 경기 킨텍스 제2전시장 3층 경기 고양시 일산서구 킨텍스로 217-59 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">193</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>신승태</strong><span class="sub">[경기] 06/21 (일) 일산 신승태</span></td>
+              <td class="date">2026-06-21(일)</td>
+              <td>15:00~17:30</td>
+              <td>경기</td>
+              <td><span class="badge open">확인</span><strong class="venue">킨텍스 제2전시장 3층</strong><span class="sub">경기 고양시 일산서구 킨텍스로 217-59</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="강원" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 김미경 [강원] 06/23 (화) 강릉 김미경 강원 세인트컨벤션웨딩 2층 강원특별자치도 강릉시 공항길127번길 19 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">194</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>김미경</strong><span class="sub">[강원] 06/23 (화) 강릉 김미경</span></td>
+              <td class="date">2026-06-23(화)</td>
+              <td>10:20~13:30</td>
+              <td>강원</td>
+              <td><span class="badge open">확인</span><strong class="venue">세인트컨벤션웨딩 2층</strong><span class="sub">강원특별자치도 강릉시 공항길127번길 19</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="충북" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 제미나이 [충북] 06/23 (화) 충주 제미나이 충북 호텔 더베이스 b1층 충북 충주시 호암대로 8 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">195</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>제미나이</strong><span class="sub">[충북] 06/23 (화) 충주 제미나이</span></td>
+              <td class="date">2026-06-23(화)</td>
+              <td>10:20~13:30</td>
+              <td>충북</td>
+              <td><span class="badge open">확인</span><strong class="venue">호텔 더베이스 B1층</strong><span class="sub">충북 충주시 호암대로 8</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="충북" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 김미경 [충북] 06/24 (수) 청주 김미경 충북 엔포드호텔 3층 충북 청주시 청원구 충청대로 114 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">196</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>김미경</strong><span class="sub">[충북] 06/24 (수) 청주 김미경</span></td>
+              <td class="date">2026-06-24(수)</td>
+              <td>10:20~13:30</td>
+              <td>충북</td>
+              <td><span class="badge open">확인</span><strong class="venue">엔포드호텔 3층</strong><span class="sub">충북 청주시 청원구 충청대로 114</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="세바여" data-region="강남" data-status="공개" data-venue="확인필요" data-search="세상을 바꾸는 여자들(월드맘/세바여) 공연 김동하 김동하 공연 강남 강남 지역 (상세 장소 미공개) 신청 페이지에는 지역/날짜/시간만 공개됨 후원사(보람상조) 홍보시간 포함 공개">
+              <td class="num">197</td>
+              <td><strong>세바여</strong><span class="sub">공연</span></td>
+              <td><strong>김동하</strong><span class="sub">김동하 공연</span></td>
+              <td class="date">2026-06-25(목)</td>
+              <td>19:20</td>
+              <td>강남</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">강남 지역 (상세 장소 미공개)</strong><span class="sub">신청 페이지에는 지역/날짜/시간만 공개됨</span></td>
+              <td>후원사(보람상조) 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경기" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 강형욱 [경기] 06/25 (목) 수원 강형욱 경기 ak플라자 수원 6층 경기 수원시 팔달구 덕영대로 924 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">198</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>강형욱</strong><span class="sub">[경기] 06/25 (목) 수원 강형욱</span></td>
+              <td class="date">2026-06-25(목)</td>
+              <td>11:00~14:10</td>
+              <td>경기</td>
+              <td><span class="badge open">확인</span><strong class="venue">AK플라자 수원 6층</strong><span class="sub">경기 수원시 팔달구 덕영대로 924</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경기" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 제미나이 [경기] 06/25 (목) 용인 제미나이 경기 ict밸리컨벤션 2층 경기 용인시 기흥구 기흥로 58-1 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">199</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>제미나이</strong><span class="sub">[경기] 06/25 (목) 용인 제미나이</span></td>
+              <td class="date">2026-06-25(목)</td>
+              <td>10:20~13:30</td>
+              <td>경기</td>
+              <td><span class="badge open">확인</span><strong class="venue">ICT밸리컨벤션 2층</strong><span class="sub">경기 용인시 기흥구 기흥로 58-1</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="맘맘이야" data-region="성남" data-status="공개" data-venue="확인필요" data-search="맘맘이야 무료 특강 효린파파 효린파파 무료 특강 성남 상세 장소 미확인  후원사/상품 홍보 여부 상세 확인 필요 공개 맘마미아 mommomia">
+              <td class="num">200</td>
+              <td><strong>맘맘이야</strong><span class="sub">무료 특강</span></td>
+              <td><strong>효린파파</strong><span class="sub">효린파파 무료 특강</span></td>
+              <td class="date">2026-06-26(금)</td>
+              <td><span class="empty">미확인</span></td>
+              <td>성남</td>
+              <td><span class="badge muted">확인필요</span><strong class="venue">상세 장소 미확인</strong><span class="sub"></span></td>
+              <td>후원사/상품 홍보 여부 상세 확인 필요</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경기" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 제미나이 [경기] 06/26 (금) 여주 제미나이 경기 일성남한강콘도 2층 경기 여주시 신륵로 5 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">201</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>제미나이</strong><span class="sub">[경기] 06/26 (금) 여주 제미나이</span></td>
+              <td class="date">2026-06-26(금)</td>
+              <td>10:20~13:30</td>
+              <td>경기</td>
+              <td><span class="badge open">확인</span><strong class="venue">일성남한강콘도 2층</strong><span class="sub">경기 여주시 신륵로 5</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="경남" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 강형욱 [경남] 06/26 (금) 진주 강형욱 경남 엠비씨컨벤션진주 1층 경남 진주시 동진로 415 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">202</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>강형욱</strong><span class="sub">[경남] 06/26 (금) 진주 강형욱</span></td>
+              <td class="date">2026-06-26(금)</td>
+              <td>10:20~13:30</td>
+              <td>경남</td>
+              <td><span class="badge open">확인</span><strong class="venue">엠비씨컨벤션진주 1층</strong><span class="sub">경남 진주시 동진로 415</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="강원" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 김미경 [강원] 06/27 (토) 원주 김미경 강원 한라대학교한라관 1층 강원특별자치도 원주시 흥업면 한라대길 28 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">203</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>김미경</strong><span class="sub">[강원] 06/27 (토) 원주 김미경</span></td>
+              <td class="date">2026-06-27(토)</td>
+              <td>11:00~14:10</td>
+              <td>강원</td>
+              <td><span class="badge open">확인</span><strong class="venue">한라대학교한라관 1층</strong><span class="sub">강원특별자치도 원주시 흥업면 한라대길 28</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="전북" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 김태균 [전북] 06/27 (토) 전주 김태균 전북 전주대학교예술관 1층 전북 전주시 완산구 천잠로 303 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">204</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>김태균</strong><span class="sub">[전북] 06/27 (토) 전주 김태균</span></td>
+              <td class="date">2026-06-27(토)</td>
+              <td>11:00~14:10</td>
+              <td>전북</td>
+              <td><span class="badge open">확인</span><strong class="venue">전주대학교예술관 1층</strong><span class="sub">전북 전주시 완산구 천잠로 303</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="광주" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 신승태 [광주] 06/28 (일) 광주 신승태 광주 김대중컨벤션센터 4층 광주 서구 상무누리로 30 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">205</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>신승태</strong><span class="sub">[광주] 06/28 (일) 광주 신승태</span></td>
+              <td class="date">2026-06-28(일)</td>
+              <td>15:00~17:30</td>
+              <td>광주</td>
+              <td><span class="badge open">확인</span><strong class="venue">김대중컨벤션센터 4층</strong><span class="sub">광주 서구 상무누리로 30</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="대구" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 솔지 [대구] 06/28 (일) 대구 솔지 대구 exco 3층 대구 북구 엑스코로 10 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">206</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>솔지</strong><span class="sub">[대구] 06/28 (일) 대구 솔지</span></td>
+              <td class="date">2026-06-28(일)</td>
+              <td>15:00~17:30</td>
+              <td>대구</td>
+              <td><span class="badge open">확인</span><strong class="venue">EXCO 3층</strong><span class="sub">대구 북구 엑스코로 10</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="서울" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 제미나이 [서울] 06/30 (화) 구로 제미나이 서울 롯데시티호텔 구로 4층 서울 중구 을지로 30 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">207</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>제미나이</strong><span class="sub">[서울] 06/30 (화) 구로 제미나이</span></td>
+              <td class="date">2026-06-30(화)</td>
+              <td>10:20~13:30</td>
+              <td>서울</td>
+              <td><span class="badge open">확인</span><strong class="venue">롯데시티호텔 구로 4층</strong><span class="sub">서울 중구 을지로 30</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+            <tr data-company="쎈엄마" data-region="충남" data-status="공개" data-venue="확인" data-search="쎈엄마 강연/공연 강형욱 [충남] 06/30 (화) 천안 강형욱 충남 라마다앙코르바이윈덤 천안 20층 충남 천안시 서북구 차돌들길 12 상조 또는 크루즈 상품 홍보시간 포함 공개">
+              <td class="num">208</td>
+              <td><strong>쎈엄마</strong><span class="sub">강연/공연</span></td>
+              <td><strong>강형욱</strong><span class="sub">[충남] 06/30 (화) 천안 강형욱</span></td>
+              <td class="date">2026-06-30(화)</td>
+              <td>10:20~13:30</td>
+              <td>충남</td>
+              <td><span class="badge open">확인</span><strong class="venue">라마다앙코르바이윈덤 천안 20층</strong><span class="sub">충남 천안시 서북구 차돌들길 12</span></td>
+              <td>상조 또는 크루즈 상품 홍보시간 포함</td>
+            </tr>
+            
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+  <script>
+    const q = document.querySelector('#q');
+    const region = document.querySelector('#region');
+    const company = document.querySelector('#company');
+    const status = document.querySelector('#status');
+    const venue = document.querySelector('#venue');
+    const rows = Array.from(document.querySelectorAll('#events tbody tr'));
+    const chipButtons = Array.from(document.querySelectorAll('[data-company-filter]'));
+    const resetButton = document.querySelector('[data-reset-filters]');
+    function syncChips() {
+      chipButtons.forEach(button => button.classList.toggle('is-active', button.dataset.companyFilter === company.value));
+      resetButton.classList.toggle('is-active', !q.value && !region.value && !company.value && !status.value && !venue.value);
+    }
+    function applyFilters() {
+      const term = q.value.trim().toLowerCase();
+      const r = region.value;
+      const c = company.value;
+      const s = status.value;
+      const v = venue.value;
+      rows.forEach(row => {
+        const matchesText = !term || row.dataset.search.includes(term);
+        const matchesRegion = !r || row.dataset.region === r;
+        const matchesCompany = !c || row.dataset.company === c;
+        const rowStatus = row.dataset.status || '';
+        const matchesStatus = !s || (s === '마감' ? (rowStatus.includes('마감') || rowStatus.includes('SOLDOUT')) : rowStatus.includes(s));
+        const matchesVenue = !v || row.dataset.venue === v;
+        row.style.display = matchesText && matchesRegion && matchesCompany && matchesStatus && matchesVenue ? '' : 'none';
+      });
+      syncChips();
+    }
+    chipButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        company.value = button.dataset.companyFilter;
+        applyFilters();
+      });
+    });
+    resetButton.addEventListener('click', () => {
+      q.value = '';
+      region.value = '';
+      company.value = '';
+      status.value = '';
+      venue.value = '';
+      applyFilters();
+    });
+    [q, region, company, status, venue].forEach(el => {
+      el.addEventListener('input', applyFilters);
+      el.addEventListener('change', applyFilters);
+    });
+    syncChips();
+  </script>
+</body>
+</html>
