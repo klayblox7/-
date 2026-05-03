@@ -66,9 +66,6 @@
     }
     .notice.warn { color: #92400e; }
     .toolbar {
-      position: sticky;
-      top: 0;
-      z-index: 5;
       display: grid;
       grid-template-columns: minmax(260px, 1fr) 190px 190px 170px 150px;
       gap: 12px;
@@ -167,12 +164,167 @@
       input, select { border-bottom: 1px solid var(--line); }
     }
     @media (max-width: 640px) {
-      .wrap { padding: 22px 14px 40px; }
-      h1 { font-size: 30px; }
-      .cards, .toolbar { grid-template-columns: 1fr; }
-      .card { border-right: 0; border-bottom: 1px solid var(--line); }
-      .card:last-child { border-bottom: 0; }
+      body { overflow-x: hidden; }
+      .wrap { padding: 14px 10px 32px; }
+      header { gap: 8px; margin-bottom: 12px; }
+      h1 {
+        margin-bottom: 6px;
+        font-size: 20px;
+        line-height: 1.15;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .lead {
+        max-width: 100%;
+        font-size: 12px;
+        line-height: 1.4;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+      }
+      .stamp { font-size: 11px; line-height: 1.45; white-space: normal; }
+      .stamp strong { font-size: 13px; }
+      .cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        margin: 10px 0 12px;
+      }
+      .card { min-width: 0; min-height: 0; padding: 10px 12px; border-right: 0; overflow: hidden; }
+      .card b {
+        font-size: 18px;
+        line-height: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .card span {
+        margin-top: 4px;
+        font-size: 11px;
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .chipbox {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+        margin: 6px 0 10px;
+      }
+      .chip {
+        width: 100%;
+        min-width: 0;
+        min-height: 34px;
+        padding: 6px 8px;
+        font-size: 12px;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .chip b { font-size: 12px; }
       .chip-all { margin-left: 0; }
+      .toolbar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        padding: 10px;
+        margin: 10px 0 12px;
+      }
+      .toolbar input { grid-column: 1 / -1; }
+      .toolbar > * { min-width: 0; }
+      input, select { width: 100%; min-width: 0; min-height: 40px; padding: 8px 10px; font-size: 12px; }
+      .tablebox {
+        overflow: visible;
+        background: transparent;
+        box-shadow: none;
+      }
+      table {
+        display: block;
+        width: 100%;
+        min-width: 0;
+      }
+      thead { display: none; }
+      tbody {
+        display: grid;
+        gap: 8px;
+      }
+      tbody tr {
+        display: grid;
+        grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1fr);
+        column-gap: 8px;
+        row-gap: 5px;
+        padding: 10px 9px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+      }
+      tbody tr:hover { background: var(--panel); }
+      th, td {
+        padding: 0;
+        border-bottom: 0;
+      }
+      td {
+        min-width: 0;
+        font-size: 12px;
+        line-height: 1.32;
+      }
+      td strong {
+        display: block;
+        font-size: 13px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .sub {
+        margin-top: 1px;
+        font-size: 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      td:nth-child(1) {
+        grid-column: 1;
+        grid-row: 1 / span 2;
+        text-align: center;
+        font-size: 15px;
+        padding-top: 2px;
+      }
+      td:nth-child(2) { grid-column: 2; grid-row: 1; }
+      td:nth-child(3) { grid-column: 3; grid-row: 1; }
+      td:nth-child(4) { grid-column: 2; grid-row: 2; }
+      td:nth-child(5) { grid-column: 3; grid-row: 2; }
+      td:nth-child(6) { grid-column: 2 / -1; grid-row: 3; }
+      td:nth-child(7),
+      td:nth-child(8) { grid-column: 1 / -1; }
+      td:nth-child(n+4)::before {
+        display: inline;
+        margin-bottom: 1px;
+        margin-right: 4px;
+        color: var(--muted);
+        font-size: 9px;
+        font-weight: 800;
+      }
+      td:nth-child(4)::before { content: "날짜"; }
+      td:nth-child(5)::before { content: "시간"; }
+      td:nth-child(6)::before { content: "지역"; }
+      td:nth-child(7)::before { content: "장소"; }
+      td:nth-child(8)::before { content: "홍보 고지"; }
+      .date { white-space: nowrap; font-size: 12px; }
+      .badge { min-height: 18px; padding: 1px 6px; font-size: 10px; }
+      .venue {
+        margin-top: 2px;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      td:nth-child(8) {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
     }
   </style>
 </head>
