@@ -67,7 +67,7 @@
     .notice.warn { color: #92400e; }
     .toolbar {
       display: grid;
-      grid-template-columns: minmax(260px, 1fr) 130px 140px 180px 180px 160px 150px;
+      grid-template-columns: minmax(260px, 1fr) 140px 130px 180px 180px 160px 150px;
       gap: 12px;
       align-items: center;
       padding: 14px;
@@ -349,7 +349,7 @@
       <div class="stamp">
         기준일: <strong>2026-05-03</strong><br>
         표시 기간: 2026-05-03(일) ~ 2026-07-03(금)<br>
-        생성: 2026-05-04 12:09 KST
+        생성: 2026-05-04 12:37 KST
       </div>
     </header>
 
@@ -369,14 +369,14 @@
 <button type="button" class="chip" data-company-filter="맘맘이야">맘맘이야 <b>25</b></button>
 <button type="button" class="chip" data-company-filter="여유톡">여유톡 <b>13</b></button>
 <button type="button" class="chip" data-company-filter="디어데이">디어데이 <b>11</b></button>
-<button type="button" class="chip chip-all is-active" data-reset-filters>전체 <b>235</b></button></div>
+<button type="button" class="chip chip-all is-active" data-reset-filters>초기화</button></div>
 
     <section class="toolbar" aria-label="필터">
       <input id="q" type="search" placeholder="검색: 업체, 강사, 지역, 장소, 홍보고지">
-      <select id="timePeriod"><option value="">시간대</option><option value="오전">오전 (153)</option>
-<option value="오후">오후 (82)</option></select>
       <select id="month"><option value="">전체 월</option><option value="2026-05">5월 (175)</option>
 <option value="2026-06">6월 (60)</option></select>
+      <select id="timePeriod"><option value="">시간대</option><option value="오전">오전 (153)</option>
+<option value="오후">오후 (82)</option></select>
       <select id="region"><option value="">전체 지역</option><option class="region-separator" disabled>────────────────</option>
 <option class="region-group-option" value="서울">서울 통합 (40)</option>
 <option value="강남">  강남 (5)</option>
@@ -3118,19 +3118,75 @@
     function makeRegionSeparator(index) {
       return makeRegionOption(`__separator_${index}`, regionSeparatorLabel, null, 'region-separator', true);
     }
+    function rowMatchesFilters(row, except = '') {
+      const term = q.value.trim().toLowerCase();
+      const p = timePeriod.value;
+      const m = month.value;
+      const r = region.value;
+      const c = company.value;
+      const s = status.value;
+      const v = venue.value;
+      const rowStatus = row.dataset.status || '';
+      if (except !== 'text' && term && !row.dataset.search.includes(term)) return false;
+      if (except !== 'timePeriod' && p && row.dataset.timePeriod !== p) return false;
+      if (except !== 'month' && m && row.dataset.month !== m) return false;
+      if (except !== 'region' && r && row.dataset.region !== r && row.dataset.regionGroup !== r) return false;
+      if (except !== 'company' && c && row.dataset.company !== c) return false;
+      if (except !== 'status' && s && !(s === '마감' ? (rowStatus.includes('마감') || rowStatus.includes('SOLDOUT')) : rowStatus.includes(s))) return false;
+      if (except !== 'venue' && v && row.dataset.venue !== v) return false;
+      return true;
+    }
+    function refreshTimePeriodOptions() {
+      const counts = { '오전': 0, '오후': 0 };
+      rows.forEach(row => {
+        if (!rowMatchesFilters(row, 'timePeriod')) return;
+        const period = row.dataset.timePeriod || '';
+        if (Object.prototype.hasOwnProperty.call(counts, period)) counts[period] += 1;
+      });
+      Array.from(timePeriod.options).forEach(option => {
+        if (!option.value) return;
+        option.textContent = `${option.value} (${counts[option.value] || 0})`;
+      });
+    }
+    function refreshMonthOptions() {
+      const counts = new Map();
+      rows.forEach(row => {
+        if (!rowMatchesFilters(row, 'month')) return;
+        increment(counts, row.dataset.month || '');
+      });
+      Array.from(month.options).forEach(option => {
+        if (!option.value) return;
+        const monthNumber = Number(option.value.slice(5, 7));
+        option.textContent = `${monthNumber}월 (${counts.get(option.value) || 0})`;
+      });
+    }
+    function refreshCompanyCounts() {
+      const counts = new Map();
+      let total = 0;
+      rows.forEach(row => {
+        if (!rowMatchesFilters(row, 'company')) return;
+        total += 1;
+        increment(counts, row.dataset.company || '');
+      });
+      Array.from(company.options).forEach(option => {
+        if (!option.value) return;
+        option.textContent = `${option.value} (${counts.get(option.value) || 0})`;
+      });
+      const resetCountNode = resetButton?.querySelector('b');
+      if (resetCountNode) resetCountNode.textContent = total;
+      chipButtons.forEach(button => {
+        const countNode = button.querySelector('b');
+        if (countNode) countNode.textContent = counts.get(button.dataset.companyFilter) || 0;
+      });
+    }
     function rebuildRegionOptions() {
-      const selectedCompany = company.value;
-      const selectedTimePeriod = timePeriod.value;
-      const selectedMonth = month.value;
       const previousValue = region.value;
       const groupCounts = new Map();
       const groupedRegions = new Map();
       const remainingRegions = new Map();
 
       rows.forEach(row => {
-        if (selectedCompany && row.dataset.company !== selectedCompany) return;
-        if (selectedTimePeriod && row.dataset.timePeriod !== selectedTimePeriod) return;
-        if (selectedMonth && row.dataset.month !== selectedMonth) return;
+        if (!rowMatchesFilters(row, 'region')) return;
         const rowRegion = row.dataset.region || '';
         const rowGroup = row.dataset.regionGroup || '';
         if (!rowRegion) return;
@@ -3179,24 +3235,12 @@
       });
     }
     function applyFilters() {
-      const term = q.value.trim().toLowerCase();
-      const p = timePeriod.value;
-      const m = month.value;
-      const c = company.value;
       rebuildRegionOptions();
-      const r = region.value;
-      const s = status.value;
-      const v = venue.value;
+      refreshTimePeriodOptions();
+      refreshMonthOptions();
+      refreshCompanyCounts();
       rows.forEach(row => {
-        const matchesText = !term || row.dataset.search.includes(term);
-        const matchesTimePeriod = !p || row.dataset.timePeriod === p;
-        const matchesMonth = !m || row.dataset.month === m;
-        const matchesRegion = !r || row.dataset.region === r || row.dataset.regionGroup === r;
-        const matchesCompany = !c || row.dataset.company === c;
-        const rowStatus = row.dataset.status || '';
-        const matchesStatus = !s || (s === '마감' ? (rowStatus.includes('마감') || rowStatus.includes('SOLDOUT')) : rowStatus.includes(s));
-        const matchesVenue = !v || row.dataset.venue === v;
-        row.style.display = matchesText && matchesTimePeriod && matchesMonth && matchesRegion && matchesCompany && matchesStatus && matchesVenue ? '' : 'none';
+        row.style.display = rowMatchesFilters(row) ? '' : 'none';
       });
       renumberVisibleRows();
       syncChips();
@@ -3222,6 +3266,9 @@
       el.addEventListener('change', applyFilters);
     });
     rebuildRegionOptions();
+    refreshTimePeriodOptions();
+    refreshMonthOptions();
+    refreshCompanyCounts();
     syncChips();
   </script>
 </body>
